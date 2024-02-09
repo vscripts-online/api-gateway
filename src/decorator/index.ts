@@ -1,1 +1,1 @@
-export * from './user_id.decorator'
+export * from './user_id.decorator';

@@ -1,11 +1,11 @@
-import { config } from 'dotenv'
-config()
+import { config } from 'dotenv';
+config();
 
-process.on('uncaughtException', err => {
-  console.log('uncaughtException')
-  console.log(err)
-  console.log(err.stack)
-})
+process.on('uncaughtException', (err) => {
+  console.log('uncaughtException');
+  console.log(err);
+  console.log(err.stack);
+});
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -14,7 +14,7 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, }));
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   app.enableShutdownHooks();
   app.enableCors({ origin: '*' });

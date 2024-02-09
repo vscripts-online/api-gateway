@@ -7,19 +7,19 @@ export class NewAccountRequestDTO {
 
   @IsOptional()
   @IsString()
-  label: string
+  label: string;
 }
 
 export class AccountUpdateGoogleRequestDTO {
   @IsString()
   @Length(10)
-  id: string
+  id: string;
 
   @IsString()
   @Length(10)
-  client_id: string
+  client_id: string;
 
   @IsString()
   @Length(10)
-  client_secret: string
+  client_secret: string;
 }

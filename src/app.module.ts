@@ -16,7 +16,9 @@ import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(`mongodb://${MONGO_HOST}:${MONGO_PORT}`, { dbName: MONGO_DATABASE }),
+    MongooseModule.forRoot(`mongodb://${MONGO_HOST}:${MONGO_PORT}`, {
+      dbName: MONGO_DATABASE,
+    }),
     DatabaseModule,
     RedisModule,
     AccountModule,
@@ -26,9 +28,9 @@ import { UserModule } from './modules/user/user.module';
     QueueModule,
     ConsumerModule,
     FileModule,
-    UserModule
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

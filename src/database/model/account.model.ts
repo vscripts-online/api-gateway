@@ -50,4 +50,4 @@ export class AccountSchema extends BaseSchema implements IAccountSchema {
   available_size: number;
 }
 
-export const AccountSchemaClass = SchemaFactory.createForClass(AccountSchema)
+export const AccountSchemaClass = SchemaFactory.createForClass(AccountSchema);

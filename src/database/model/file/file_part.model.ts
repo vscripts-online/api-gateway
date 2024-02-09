@@ -3,11 +3,11 @@ import * as mongoose from 'mongoose';
 import { AccountSchema } from '../account.model';
 
 export interface IFilePartSchema {
-  owner: AccountSchema
-  name: string
-  offset: number
-  size: number
-  id: string
+  owner: AccountSchema;
+  name: string;
+  offset: number;
+  size: number;
+  id: string;
 }
 
 export class FilePartSchema {
@@ -15,14 +15,14 @@ export class FilePartSchema {
   owner: AccountSchema;
 
   @Prop({ nullable: false })
-  name: string
+  name: string;
 
   @Prop({ nullable: false })
-  offset: number
+  offset: number;
 
   @Prop({ nullable: false })
-  size: number
+  size: number;
 
   @Prop({ nullable: false })
-  id: string
+  id: string;
 }
