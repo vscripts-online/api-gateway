@@ -1,10 +1,10 @@
 import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from "@nestjs/common";
 import { google } from 'googleapis';
-import { REDIRECT_URI_GOOGLE } from "src/common/config";
 import { AccountTypes, DEFAULT_ISEARCH, ISearch } from "src/common/type";
 import { AccountRepository } from "src/database/repository/account.repository";
 import { StorageService } from "../storage/storage.service";
 import { AccountUpdateGoogleRequestDTO, NewAccountRequestDTO } from "./account.request.dto";
+import { REDIRECT_URI_GOOGLE } from "src/common/config/constants";
 
 @Injectable()
 export class AccountService {

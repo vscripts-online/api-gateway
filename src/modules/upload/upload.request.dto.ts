@@ -1,6 +1,6 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer';
 import { IsDefined, IsNotIn, IsNumberString, IsString, Length, ValidateNested } from 'class-validator';
-import { EXCLUDE_HEADERS } from 'src/common/config';
+import { EXCLUDE_HEADERS } from 'src/common/config/constants';
 
 export class UploadBodyRequestHeadersDTO {
   @IsString()

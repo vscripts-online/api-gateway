@@ -1,9 +1,9 @@
 import type { Channel, Connection } from 'amqplib'
 import { Inject, Injectable, forwardRef } from "@nestjs/common";
-import { RABBITMQ_CLIENT } from "src/common/config";
 import { RABBITMQ_CHANNELS, RABBITMQ_CHANNELS_DATAS } from 'src/common/type';
 import * as bytes from 'bytes';
 import { IFileSchema } from 'src/database';
+import { RABBITMQ_CLIENT } from 'src/common/config/constants';
 
 @Injectable()
 export class QueueService {

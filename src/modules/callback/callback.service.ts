@@ -3,7 +3,7 @@ import { google } from "googleapis";
 import { AccountTypes } from "src/common/type";
 import { AccountRepository } from "src/database/repository/account.repository";
 import { StorageService } from "../storage/storage.service";
-import { REDIRECT_URI_GOOGLE } from "src/common/config";
+import { REDIRECT_URI_GOOGLE } from "src/common/config/constants";
 
 @Injectable()
 export class CallbackService {

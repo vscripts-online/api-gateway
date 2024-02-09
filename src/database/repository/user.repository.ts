@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { IUserSchema, UserSchema } from "../model/user.model";
-import { BCRYPT_SALT_ROUND } from 'src/common/config';
+import { BCRYPT_SALT_ROUND } from 'src/common/config/constants';
 
 @Injectable()
 export class UserRepository {

@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import { BaseSchema } from './base.model';
 import * as bytes from 'bytes';
 import * as bcrypt from 'bcrypt';
-import { BCRYPT_SALT_ROUND } from 'src/common/config';
+import { BCRYPT_SALT_ROUND } from 'src/common/config/constants';
 
 export interface IUserSchema {
   _id?: Types.ObjectId;

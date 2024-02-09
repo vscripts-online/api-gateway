@@ -1,9 +1,9 @@
 import * as crypto from 'node:crypto'
 import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { RedisClientType } from "redis";
-import { REDIS_CLIENT } from "src/common/config";
 import { REDIS_NAMESPACES } from 'src/common/type';
 import { UserRepository } from 'src/database';
+import { REDIS_CLIENT } from 'src/common/config/constants';
 
 @Injectable()
 export class RedisService {

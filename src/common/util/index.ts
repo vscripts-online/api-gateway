@@ -1,7 +1,6 @@
 import * as xxhash from '@node-rs/xxhash';
 import { ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator';
-import * as ms from 'ms';
-import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, XXHASH_SEED_MOD } from 'src/common/config';
+import { XXHASH_SEED_MOD } from '../config/constants';
 
 export const getEnvOrThrow = (key: string) => {
   const value = process.env[key];
