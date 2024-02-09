@@ -4,14 +4,14 @@ import { FileHeaderSchema } from './file_header.model';
 import { FilePartSchema } from './file_part.model';
 
 export interface IFileSchema {
-  _id?: string
-  name: string
-  original_name: string
-  mime_type: string
-  size: number
-  slug: string
-  parts?: FilePartSchema[]
-  headers?: FileHeaderSchema[]
+  _id?: string;
+  name: string;
+  original_name: string;
+  mime_type: string;
+  size: number;
+  slug: string;
+  parts?: FilePartSchema[];
+  headers?: FileHeaderSchema[];
 }
 
 @Schema({ collection: 'file' })
@@ -41,4 +41,4 @@ export class FileSchema extends BaseSchema implements IFileSchema {
   parts?: FilePartSchema[];
 }
 
-export const FileSchemaClass = SchemaFactory.createForClass(FileSchema)
+export const FileSchemaClass = SchemaFactory.createForClass(FileSchema);
