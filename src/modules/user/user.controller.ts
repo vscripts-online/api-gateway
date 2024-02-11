@@ -16,7 +16,9 @@ import {
 } from './user.request.dto';
 import { User_Id } from 'src/decorator';
 import { AuthGuard } from 'src/guard';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('user')
 @Controller('/user')
 export class UserController {
   @Inject(forwardRef(() => UserService))

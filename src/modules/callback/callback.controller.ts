@@ -1,6 +1,8 @@
 import { Controller, Get, Inject, Query, forwardRef } from '@nestjs/common';
 import { CallbackService } from './callback.service';
+import { ApiExcludeController } from '@nestjs/swagger';
 
+@ApiExcludeController()
 @Controller('/')
 export class CallbackController {
   @Inject(forwardRef(() => CallbackService))

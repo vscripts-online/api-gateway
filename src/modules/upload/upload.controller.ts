@@ -25,8 +25,10 @@ import {
   UploadGetFileQueryDTO,
 } from './upload.request.dto';
 import { UploadService } from './upload.service';
+import { ApiTags } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard)
+@ApiTags('upload')
 @Controller('/upload')
 export class UploadController {
   @Inject(forwardRef(() => UploadService))

@@ -17,8 +17,11 @@ import {
   NewAccountRequestDTO,
 } from './account.request.dto';
 import { AccountService } from './account.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard, AdminGuard)
+@ApiBearerAuth()
+@ApiTags('account')
 @Controller('/account')
 export class AccountController {
   @Inject(forwardRef(() => AccountService))
@@ -47,10 +50,5 @@ export class AccountController {
   @Post('/login_url_google')
   login_url_google(@Body() body: AccountUpdateGoogleRequestDTO) {
     return this.authService.login_url_google(body);
-  }
-
-  @Get('/test')
-  test() {
-    return 'test';
   }
 }
