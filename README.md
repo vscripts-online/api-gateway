@@ -69,3 +69,9 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
+
+## Referances
+
+Adding multiple example responses with one status code -> [source](https://github.com/nestjs/swagger/issues/225#issuecomment-1741826782)
+
+Using 'applyDecorator' function to reduce Swagger documentation code crowd -> [source](https://aalonso.dev/blog/how-to-generate-generics-dtos-with-nestjsswagger-422g)

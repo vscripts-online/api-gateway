@@ -1,3 +1,4 @@
+// import * as fs from 'node:fs';
 import { config } from 'dotenv';
 config();
 
@@ -28,5 +29,6 @@ async function bootstrap() {
   app.enableCors({ origin: '*' });
 
   await app.listen(parseInt(PORT), '0.0.0.0');
+  // fs.writeFileSync('document.json', JSON.stringify(document, null, 2));
 }
 bootstrap();

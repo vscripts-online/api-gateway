@@ -34,7 +34,7 @@ export const ApiPropertyEmail = (options: ApiPropertyOptions = {}) => {
   return applyDecorators(ApiProperty({ ...default_options, ...options }));
 };
 
-export class UserRegisterRequestDTO {
+export class UserLoginRequestDTO {
   @ApiPropertyEmail()
   @IsEmail()
   @Length(5, 320)
@@ -50,7 +50,9 @@ export class UserRegisterRequestDTO {
   @IsAscii()
   @Length(8, 40)
   password: string;
+}
 
+export class UserRegisterRequestDTO extends UserLoginRequestDTO {
   @ApiPropertyOptional({
     example: null,
     description:
@@ -61,8 +63,6 @@ export class UserRegisterRequestDTO {
   @IsString()
   admin_key: string;
 }
-
-export class UserLoginRequestDTO extends UserRegisterRequestDTO {}
 
 export class UserChangePasswordRequestDTO {
   @ApiPropertyPassword()
