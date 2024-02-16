@@ -1,5 +1,4 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
-import { google } from 'googleapis';
 import * as fs from 'node:fs';
 import { AccountTypes } from 'src/common/type';
 import { IAccountSchema, IFilePartSchema } from 'src/database';
@@ -23,46 +22,10 @@ export class StorageService {
   async delete_unsynced_files() {
     const unsynced_files = await this.fileRepository.get_unsynced_files();
     for (const { name, _id } of unsynced_files) {
-      console.log('removing', name);
+      console.log('removing at upload/', name);
       fs.promises.unlink('./upload/' + name).catch(() => void 0);
       this.fileRepository.delete_file_by_id(_id);
     }
-  }
-
-  private async test() {
-    const account = await this.accountRepository.get_account_by_id(
-      '65bd702109866a1c1de36fac',
-    );
-    const oAuth2Client = new google.auth.OAuth2(
-      account.client_id,
-      account.client_secret,
-    );
-    oAuth2Client.setCredentials({
-      refresh_token: account.refresh_token,
-      access_token: account.access_token,
-    });
-    const {
-      credentials: { access_token, expiry_date },
-    } = await oAuth2Client.refreshAccessToken();
-    this.accountRepository.set_access_token(
-      account._id,
-      access_token,
-      expiry_date,
-    );
-    oAuth2Client.setCredentials({
-      refresh_token: account.refresh_token,
-      access_token,
-    });
-
-    const drive = google.drive({ version: 'v3', auth: oAuth2Client });
-
-    const response = await drive.files.list({
-      pageSize: 10,
-      fields: 'files(name, id)',
-    });
-    const files = response.data.files;
-
-    console.log(files);
   }
 
   private get_storage(account: IAccountSchema) {

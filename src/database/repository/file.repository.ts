@@ -27,7 +27,7 @@ export class FileRepository {
   async create_file_part(_id: string, file_part: IFilePartSchema) {
     return this.model.updateOne(
       { _id },
-      { $push: { parts: { ...file_part, uploaded_size: 0 } } },
+      { $push: { parts: { ...file_part } } },
     );
   }
 
@@ -49,7 +49,11 @@ export class FileRepository {
     return this.model.updateOne({ _id }, { loading_from_cloud_now });
   }
 
-  async get_files(params: ISearch = DEFAULT_ISEARCH) {
+  async get_files(
+    where: Partial<IFileSchema> = {},
+    params: ISearch = DEFAULT_ISEARCH,
+    sort_by: string = '',
+  ) {
     let { limit, skip } = params || DEFAULT_ISEARCH;
 
     if (!limit) {
@@ -60,6 +64,10 @@ export class FileRepository {
       skip = 0;
     }
 
-    return await this.model.find().skip(skip).limit(limit);
+    return await this.model
+      .find(where)
+      .skip(skip)
+      .limit(limit)
+      .sort(sort_by || undefined);
   }
 }
