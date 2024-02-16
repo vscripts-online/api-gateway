@@ -5,6 +5,7 @@ import {
   registerDecorator,
 } from 'class-validator';
 import { XXHASH_SEED_MOD } from '../config/constants';
+import { Class } from '../type';
 
 export const getEnvOrThrow = (key: string) => {
   const value = process.env[key];
@@ -97,4 +98,26 @@ export function IsNotEqualWith(
       },
     });
   };
+}
+
+export function classToSwaggerJson(_class: Class) {
+  const instance = new _class();
+  const methods = Reflect.getMetadata(
+    'swagger/apiModelPropertiesArray',
+    instance,
+  );
+
+  const keys = {};
+
+  for (const method of methods) {
+    const key = method[0] === ':' ? method.slice(1) : method;
+    const { example } = Reflect.getMetadata(
+      'swagger/apiModelProperties',
+      instance,
+      key,
+    );
+    keys[key] = example;
+  }
+
+  return keys;
 }

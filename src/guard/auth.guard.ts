@@ -38,6 +38,9 @@ export class AuthGuard implements CanActivate {
       _id,
       REDIS_NAMESPACES.SESSION,
     );
+
+    console.log(_id);
+
     if (valid) {
       request['_id'] = _id;
     }

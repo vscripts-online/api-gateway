@@ -20,6 +20,7 @@ export class AdminGuard implements CanActivate {
     const _id = request['_id'];
 
     const user = await this.userRepository.find_one_by_id(_id);
-    return user.admin;
+    console.log(user);
+    return user?.admin;
   }
 }

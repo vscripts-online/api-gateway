@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsOptional, Min } from 'class-validator';
 
@@ -13,11 +14,13 @@ export interface ISearch {
 export const DEFAULT_ISEARCH = { skip: 0, limit: 20 };
 
 export class SearchRequestQueryParams {
+  @ApiProperty({ example: 20, minLength: 0, required: false, default: 0 })
   @IsOptional()
   @Type(() => Number)
   @Min(0)
   skip: number;
 
+  @ApiProperty({ example: 20, minLength: 0, required: false, default: 0 })
   @IsOptional()
   @Type(() => Number)
   @Min(0)
@@ -50,3 +53,5 @@ export interface RABBITMQ_CHANNELS_DATAS {
 export enum REDIS_NAMESPACES {
   SESSION = 'session',
 }
+
+export type Class = { new (...args: any[]): any };

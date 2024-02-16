@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Inject,
   Param,
   Post,
@@ -10,6 +11,7 @@ import {
   UseGuards,
   forwardRef,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SearchRequestQueryParams } from 'src/common/type';
 import { AdminGuard, AuthGuard } from 'src/guard';
 import {
@@ -17,7 +19,13 @@ import {
   NewAccountRequestDTO,
 } from './account.request.dto';
 import { AccountService } from './account.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  AccountDeleteAccountResponseDocumentation,
+  AccountGetAccountsResponseDocumentation,
+  AccountLoginUrlGoogleResponseDocumentation,
+  AccountNewAccountResponseDocumentation,
+  AccountSyncSizeResponseDocumentation,
+} from './account.swagger';
 
 @UseGuards(AuthGuard, AdminGuard)
 @ApiBearerAuth()
@@ -28,27 +36,34 @@ export class AccountController {
   private readonly authService: AccountService;
 
   @Post('/new_account')
+  @AccountNewAccountResponseDocumentation()
   new_account(@Body() body: NewAccountRequestDTO) {
     return this.authService.new_account(body);
   }
 
+  @HttpCode(200)
+  @Post('/login_url_google')
+  @AccountLoginUrlGoogleResponseDocumentation()
+  login_url_google(@Body() body: AccountUpdateGoogleRequestDTO) {
+    return this.authService.login_url_google(body);
+  }
+
+  @HttpCode(200)
   @Post('/sync_size/:id')
+  @AccountSyncSizeResponseDocumentation()
   sync_size(@Param('id') id: string) {
     return this.authService.sync_size(id);
   }
 
   @Get('/accounts')
+  @AccountGetAccountsResponseDocumentation()
   get_accounts(@Query() params: SearchRequestQueryParams) {
     return this.authService.get_accounts({ ...params });
   }
 
   @Delete('/:id')
+  @AccountDeleteAccountResponseDocumentation()
   delete_account(@Param('id') id: string) {
     return this.authService.delete_account(id);
-  }
-
-  @Post('/login_url_google')
-  login_url_google(@Body() body: AccountUpdateGoogleRequestDTO) {
-    return this.authService.login_url_google(body);
   }
 }

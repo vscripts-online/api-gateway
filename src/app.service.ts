@@ -13,6 +13,7 @@ import { StorageService } from './modules/storage/storage.service';
 import { AccountRepository } from './database/repository/account.repository';
 import { FileService } from './modules/file/file.service';
 import { IFileSchema } from './database';
+import { DEFAULT_ISEARCH, ISearch } from './common/type';
 
 @Injectable()
 export class AppService {
@@ -94,5 +95,9 @@ export class AppService {
     );
 
     return 'poıng';
+  }
+
+  async get_files(params: ISearch = DEFAULT_ISEARCH) {
+    return this.fileRepository.get_files(params);
   }
 }
