@@ -25,7 +25,10 @@ import {
   UploadGetFileQueryDTO,
 } from './upload.request.dto';
 import { UploadService } from './upload.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
+import { PrivateGuard } from 'src/guard/private.guard';
+import { UploadResponseDocumentation } from './upload.swagger';
+import { UploadFileMissingExceptionDTO } from './upload.response.dto';
 
 @UseGuards(AuthGuard)
 @ApiTags('upload')
@@ -35,10 +38,12 @@ export class UploadController {
   private readonly uploadService: UploadService;
 
   @Post('/')
+  @ApiBearerAuth()
+  @UploadResponseDocumentation()
   @UseInterceptors(FileInterceptor('file', { dest: './upload' }))
   async upload(@UploadedFile() file: Express.Multer.File, @Body() body: any) {
     if (!file) {
-      throw new BadRequestException('Please upload a file');
+      throw new UploadFileMissingExceptionDTO();
     }
 
     let headers = [];
@@ -61,6 +66,8 @@ export class UploadController {
     return this.uploadService.upload(file, headers);
   }
 
+  @UseGuards(PrivateGuard)
+  @ApiExcludeEndpoint()
   @Get('/file/:id')
   async get_file(
     @Res() res: Response,
