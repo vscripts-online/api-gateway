@@ -1,19 +1,20 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
 import { google } from 'googleapis';
-import { AccountTypes, DEFAULT_ISEARCH, ISearch } from 'src/common/type';
+import { REDIRECT_URI_GOOGLE } from 'src/common/config/constants';
+import { AccountTypes, ISearch } from 'src/common/type';
 import { AccountRepository } from 'src/database/repository/account.repository';
 import { StorageService } from '../storage/storage.service';
 import {
   AccountUpdateGoogleRequestDTO,
   NewAccountRequestDTO,
 } from './account.request.dto';
-import { REDIRECT_URI_GOOGLE } from 'src/common/config/constants';
+import { AccountLoginUrlGoogleInvalidIdExceptionDTO } from './account.response.dto';
+import { DEFAULT_SEARCH } from 'src/common/util';
 
 @Injectable()
 export class AccountService {
@@ -23,27 +24,9 @@ export class AccountService {
   @Inject(forwardRef(() => StorageService))
   private readonly storageService: StorageService;
 
-  async new_account(params: NewAccountRequestDTO): Promise<any> {
+  async new_account(params: NewAccountRequestDTO) {
     const { type, label } = params;
     return this.accountRepository.new_account(type, label);
-  }
-
-  async sync_size(id: string): Promise<any> {
-    const account = await this.accountRepository.get_account_by_id(id);
-    if (!account) {
-      throw new NotFoundException();
-    }
-
-    const size = await this.storageService.get_storage_sizes(account);
-    return this.accountRepository.sync_size(id, size);
-  }
-
-  async get_accounts(params: ISearch = DEFAULT_ISEARCH) {
-    return this.accountRepository.get_accounts(params);
-  }
-
-  async delete_account(id: string) {
-    return this.accountRepository.delete_account(id);
   }
 
   async login_url_google(params: AccountUpdateGoogleRequestDTO) {
@@ -51,7 +34,7 @@ export class AccountService {
 
     const account = await this.accountRepository.get_account_by_id(id);
     if (account.type !== AccountTypes.GOOGLE) {
-      throw new BadRequestException('Invalid id');
+      throw new AccountLoginUrlGoogleInvalidIdExceptionDTO();
     }
 
     const oAuth2Client = new google.auth.OAuth2(
@@ -73,5 +56,23 @@ export class AccountService {
     await account.save();
 
     return { authUrl };
+  }
+
+  async sync_size(id: string): Promise<any> {
+    const account = await this.accountRepository.get_account_by_id(id);
+    if (!account) {
+      throw new NotFoundException();
+    }
+
+    const size = await this.storageService.get_storage_sizes(account);
+    return this.accountRepository.sync_size(id, size);
+  }
+
+  async get_accounts(params: ISearch = DEFAULT_SEARCH) {
+    return this.accountRepository.get_accounts(params);
+  }
+
+  async delete_account(id: string) {
+    return this.accountRepository.delete_account(id);
   }
 }

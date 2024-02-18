@@ -13,6 +13,7 @@ import { StorageModule } from './modules/storage/storage.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { UserModule } from './modules/user/user.module';
+import { FilesModule } from './modules/files/files.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { UserModule } from './modules/user/user.module';
     ConsumerModule,
     FileModule,
     UserModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

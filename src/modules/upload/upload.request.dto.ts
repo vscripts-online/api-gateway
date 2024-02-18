@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   IsDefined,
@@ -10,6 +11,7 @@ import {
 import { EXCLUDE_HEADERS } from 'src/common/config/constants';
 
 export class UploadBodyRequestHeadersDTO {
+  @ApiProperty({ minLength: 1 })
   @IsString()
   @Transform((obj: TransformFnParams) => {
     if (typeof obj.value === 'string') {
@@ -21,12 +23,18 @@ export class UploadBodyRequestHeadersDTO {
   @Length(1)
   key: string;
 
+  @ApiProperty({ minLength: 1 })
   @IsString()
   @Length(1)
   value: string;
 }
 
 export class UploadBodyRequestDTO {
+  @ApiProperty({
+    type: UploadBodyRequestHeadersDTO,
+    isArray: true,
+    required: false,
+  })
   @ValidateNested({ each: true })
   @Type(() => UploadBodyRequestHeadersDTO)
   headers?: UploadBodyRequestHeadersDTO[];

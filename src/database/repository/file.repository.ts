@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { FileSchema, IFilePartSchema, IFileSchema } from '../model';
+import { ISearch } from 'src/common/type';
+import { DEFAULT_SEARCH } from 'src/common/util';
 
 @Injectable()
 export class FileRepository {
@@ -26,7 +28,7 @@ export class FileRepository {
   async create_file_part(_id: string, file_part: IFilePartSchema) {
     return this.model.updateOne(
       { _id },
-      { $push: { parts: { ...file_part, uploaded_size: 0 } } },
+      { $push: { parts: { ...file_part } } },
     );
   }
 
@@ -46,5 +48,27 @@ export class FileRepository {
     loading_from_cloud_now: boolean,
   ) {
     return this.model.updateOne({ _id }, { loading_from_cloud_now });
+  }
+
+  async get_files(
+    where: Partial<IFileSchema> = {},
+    params: ISearch = DEFAULT_SEARCH,
+    sort_by: string = '',
+  ) {
+    let { limit, skip } = params || DEFAULT_SEARCH;
+
+    if (!limit) {
+      limit = 20;
+    }
+
+    if (!skip) {
+      skip = 0;
+    }
+
+    return await this.model
+      .find(where)
+      .skip(skip)
+      .limit(limit)
+      .sort(sort_by || undefined);
   }
 }

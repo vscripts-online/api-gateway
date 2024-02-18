@@ -1,9 +1,8 @@
 import { getEnvOrThrow } from '../util';
 
-export const ENV_STRINGS = {
+const ENV_STRINGS = {
   PORT: 'PORT',
-  JWT_ACCESS_SECRET: 'JWT_ACCESS_SECRET',
-  JWT_REFRESH_SECRET: 'JWT_REFRESH_SECRET',
+  JWT_SECRET: 'JWT_SECRET',
   MONGO_HOST: 'MONGO_HOST',
   MONGO_PORT: 'MONGO_PORT',
   MONGO_DATABASE: 'MONGO_DATABASE',
@@ -16,8 +15,7 @@ export const ENV_STRINGS = {
 };
 
 export const PORT = getEnvOrThrow(ENV_STRINGS.PORT);
-export const JWT_ACCESS_SECRET = getEnvOrThrow(ENV_STRINGS.JWT_ACCESS_SECRET);
-export const JWT_REFRESH_SECRET = getEnvOrThrow(ENV_STRINGS.JWT_REFRESH_SECRET);
+export const JWT_SECRET = getEnvOrThrow(ENV_STRINGS.JWT_SECRET);
 
 export const MONGO_HOST = getEnvOrThrow(ENV_STRINGS.MONGO_HOST);
 export const MONGO_PORT = getEnvOrThrow(ENV_STRINGS.MONGO_PORT);

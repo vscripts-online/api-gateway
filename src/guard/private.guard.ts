@@ -1,20 +1,15 @@
 import {
   CanActivate,
   ExecutionContext,
-  Inject,
   Injectable,
   UnauthorizedException,
-  forwardRef,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { REDIS_NAMESPACES } from 'src/common/type';
-import { RedisService } from 'src/modules/redis/redis.service';
+import * as jwt from 'jsonwebtoken';
+import { JWT_SECRET } from 'src/common/config';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
-  @Inject(forwardRef(() => RedisService))
-  private readonly redisService: RedisService;
-
+export class PrivateGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const http = context.switchToHttp();
     const request = http.getRequest<Request>();
@@ -30,19 +25,6 @@ export class AuthGuard implements CanActivate {
 
     authorization = authorization.slice(7);
 
-    const [_id_b64, session] = authorization.split('|');
-    const _id = Buffer.from(_id_b64, 'base64url').toString('hex');
-
-    const valid = await this.redisService.exists(
-      session,
-      _id,
-      REDIS_NAMESPACES.SESSION,
-    );
-
-    if (valid) {
-      request['_id'] = _id;
-    }
-
-    return true;
+    return !!jwt.verify(authorization, JWT_SECRET);
   }
 }

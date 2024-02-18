@@ -1,26 +1,9 @@
-import { Type } from 'class-transformer';
-import { IsOptional, Min } from 'class-validator';
-
 export enum AccountTypes {
   GOOGLE = 'GOOGLE',
 }
 
 export interface ISearch {
   skip: number;
-  limit: number;
-}
-
-export const DEFAULT_ISEARCH = { skip: 0, limit: 20 };
-
-export class SearchRequestQueryParams {
-  @IsOptional()
-  @Type(() => Number)
-  @Min(0)
-  skip: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @Min(0)
   limit: number;
 }
 
@@ -50,3 +33,5 @@ export interface RABBITMQ_CHANNELS_DATAS {
 export enum REDIS_NAMESPACES {
   SESSION = 'session',
 }
+
+export type Class = { new (...args: any[]): any };
