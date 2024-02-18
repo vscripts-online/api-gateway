@@ -1,8 +1,8 @@
 import {
-  generateEncodedVerifyCode,
-  decodeVerifyCode,
   calculateSeed,
-} from 'src/common/util';
+  decodeVerifyCode,
+  generateEncodedVerifyCode,
+} from 'src/common/helper';
 
 test('should calculate seed correctly', () => {
   const _id = '65c4efa0b3da8a1d8773f87d';

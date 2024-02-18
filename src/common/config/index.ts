@@ -1,6 +1,6 @@
 import { getEnvOrThrow } from '../util';
 
-export const ENV_STRINGS = {
+const ENV_STRINGS = {
   PORT: 'PORT',
   JWT_SECRET: 'JWT_SECRET',
   MONGO_HOST: 'MONGO_HOST',

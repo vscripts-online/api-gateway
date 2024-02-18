@@ -1,12 +1,12 @@
 import { NotFoundException, applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { classToSwaggerJson } from 'src/common/util';
 import {
   AccountLoginUrlGoogleInvalidIdExceptionDTO,
   AccountLoginUrlGoogleResponseDTO,
   AccountNewAccountResponseDTO,
   AccountSyncSizeResponseDTO,
 } from './account.response.dto';
-import { classToSwaggerJson } from 'src/common/util';
 
 export const AccountNewAccountResponseDocumentation = () =>
   applyDecorators(

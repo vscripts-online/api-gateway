@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { google } from 'googleapis';
 import { REDIRECT_URI_GOOGLE } from 'src/common/config/constants';
-import { AccountTypes, DEFAULT_ISEARCH, ISearch } from 'src/common/type';
+import { AccountTypes, ISearch } from 'src/common/type';
 import { AccountRepository } from 'src/database/repository/account.repository';
 import { StorageService } from '../storage/storage.service';
 import {
@@ -14,6 +14,7 @@ import {
   NewAccountRequestDTO,
 } from './account.request.dto';
 import { AccountLoginUrlGoogleInvalidIdExceptionDTO } from './account.response.dto';
+import { DEFAULT_SEARCH } from 'src/common/util';
 
 @Injectable()
 export class AccountService {
@@ -67,7 +68,7 @@ export class AccountService {
     return this.accountRepository.sync_size(id, size);
   }
 
-  async get_accounts(params: ISearch = DEFAULT_ISEARCH) {
+  async get_accounts(params: ISearch = DEFAULT_SEARCH) {
     return this.accountRepository.get_accounts(params);
   }
 

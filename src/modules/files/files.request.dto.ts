@@ -8,7 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import * as bytes from 'bytes';
-import { SearchRequestQueryParams } from 'src/common/type';
+import { SearchRequestQueryParams } from 'src/common/util';
 
 export class FilesGetFilesRequestDTO extends SearchRequestQueryParams {
   @ApiProperty({ example: '65c2589d8fe830a23156b85e', required: false })

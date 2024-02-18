@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { AccountTypes, DEFAULT_ISEARCH, ISearch } from 'src/common/type';
+import { AccountTypes, ISearch } from 'src/common/type';
 import { AccountSchema, IAccountSchema } from '../model';
+import { DEFAULT_SEARCH } from 'src/common/util';
 
 @Injectable()
 export class AccountRepository {
@@ -23,8 +24,8 @@ export class AccountRepository {
     return await this.model.findOneAndDelete({ _id });
   }
 
-  async get_accounts(params: ISearch = DEFAULT_ISEARCH) {
-    let { limit, skip } = params || DEFAULT_ISEARCH;
+  async get_accounts(params: ISearch = DEFAULT_SEARCH) {
+    let { limit, skip } = params || DEFAULT_SEARCH;
 
     if (!limit) {
       limit = 20;

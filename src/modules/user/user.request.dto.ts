@@ -12,7 +12,7 @@ import {
   IsStrongPassword,
   Length,
 } from 'class-validator';
-import { IsNotEqualWith } from 'src/common/util';
+import { IsNotEqualWith } from 'src/common/helper';
 
 export const ApiPropertyPassword = (options: ApiPropertyOptions = {}) => {
   const default_options = {

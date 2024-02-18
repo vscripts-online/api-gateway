@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CustomBadRequestException } from 'src/common/exception';
+import { CustomBadRequestException } from 'src/common/util';
 
 export class FilesGetFileNotFoundExceptionDTO extends CustomBadRequestException {
   @ApiProperty({ example: 'File not found' })

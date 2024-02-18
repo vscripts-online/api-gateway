@@ -1,12 +1,12 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import * as crypto from 'node:crypto';
 import { RABBITMQ_CHANNELS, RABBITMQ_CHANNELS_DATAS } from 'src/common/type';
-import { generateEncodedVerifyCode } from 'src/common/util';
 import { AccountRepository } from 'src/database/repository/account.repository';
 import { FileRepository } from 'src/database/repository/file.repository';
 import { FileService } from '../file/file.service';
 import { QueueService } from '../queue/queue.service';
 import { StorageService } from '../storage/storage.service';
+import { generateEncodedVerifyCode } from 'src/common/helper';
 
 @Injectable()
 export class ConsumerService {

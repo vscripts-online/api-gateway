@@ -3,7 +3,7 @@ import * as bcrypt from 'bcrypt';
 import * as ms from 'ms';
 import { ADMIN_KEY } from 'src/common/config';
 import { REDIS_NAMESPACES } from 'src/common/type';
-import { decodeVerifyCode, randomInteger } from 'src/common/util';
+import { randomInteger } from 'src/common/util';
 import { UserRepository } from 'src/database';
 import { QueueService } from '../queue/queue.service';
 import { RedisService } from '../redis/redis.service';
@@ -25,6 +25,7 @@ import {
   UserSessionResponseDTO,
   UserWrongPasswordExceptionDTO,
 } from './user.response.dto';
+import { decodeVerifyCode } from 'src/common/helper';
 
 @Injectable()
 export class UserService {
@@ -150,7 +151,7 @@ export class UserService {
       return true;
     }
 
-    /** If last request was sent betwweb 1 minute and 5 minute, send same code. */
+    /** If last request was sent between 1 minute and 5 minute, send same code. */
     if (ms('1 minutes') < time_diff && time_diff < ms('5 minutes')) {
       await this.userRepository.unshift_verify_code_send_time(user._id);
       return this.queueService.send_email(

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CustomBadRequestException } from 'src/common/exception';
+import { CustomBadRequestException } from 'src/common/util';
 
 export class UserSessionResponseDTO {
   @ApiProperty({ example: 'Zcon63hwvDO-wt7H|7BR4flOxTUv8yom6wGDXwQ' })

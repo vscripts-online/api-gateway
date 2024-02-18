@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CustomBadRequestException } from 'src/common/exception';
 import { AccountTypes } from 'src/common/type';
 import * as bytes from 'bytes';
+import { CustomBadRequestException } from 'src/common/util';
 
 export class AccountNewAccountResponseDTO {
   @ApiProperty({ example: '65ce68bd88c3b9818dbbd690' })

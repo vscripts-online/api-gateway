@@ -12,7 +12,6 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { SearchRequestQueryParams } from 'src/common/type';
 import { AdminGuard, AuthGuard } from 'src/guard';
 import {
   AccountUpdateGoogleRequestDTO,
@@ -26,6 +25,7 @@ import {
   AccountNewAccountResponseDocumentation,
   AccountSyncSizeResponseDocumentation,
 } from './account.swagger';
+import { SearchRequestQueryParams } from 'src/common/util';
 
 @UseGuards(AuthGuard, AdminGuard)
 @ApiBearerAuth()
