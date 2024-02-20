@@ -122,3 +122,5 @@ result: `ZcbR4LPaih2Hc_h9c-3fpA2n9c`
 Adding multiple swagger example responses with one status code -> [source](https://github.com/nestjs/swagger/issues/225#issuecomment-1741826782)
 
 Using 'applyDecorator' function to reduce swagger documentation code crowd -> [source](https://aalonso.dev/blog/how-to-generate-generics-dtos-with-nestjsswagger-422g)
+
+Redis stack authentication [source](https://stackoverflow.com/a/76482901)

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { MONGO_DATABASE, MONGO_HOST, MONGO_PORT } from './common/config';
+import { MONGO_DATABASE, MONGO_HOST, MONGO_PORT, MONGO_USER, MONGO_PASS } from './common/config';
 import { DatabaseModule } from './database/database.module';
 import { AccountModule } from './modules/account/account.module';
 import { CallbackModule } from './modules/callback/callback.module';
@@ -19,6 +19,8 @@ import { FilesModule } from './modules/files/files.module';
   imports: [
     MongooseModule.forRoot(`mongodb://${MONGO_HOST}:${MONGO_PORT}`, {
       dbName: MONGO_DATABASE,
+      user: MONGO_USER,
+      pass: MONGO_PASS
     }),
     DatabaseModule,
     RedisModule,
