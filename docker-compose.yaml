@@ -1,0 +1,109 @@
+version: '3'
+
+services:
+  app:
+    restart: always
+    build:
+      context: .
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
+    volumes:
+      - app_volume:/home/node/app
+    networks:
+      - custom-network
+    depends_on:
+      - redis
+      - mongo1
+      - mongo2
+      - mongo3
+      - rabbitmq
+
+  redis:
+    image: redis/redis-stack-server:latest
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_volume:/data:rw
+    environment:
+      # referance: https://stackoverflow.com/a/76482901
+      - REDIS_ARGS=--save 10 1 --appendonly yes --requirepass redis_password --user redis_username on >redis_password ~* allcommands --user default off nopass nocommands
+    networks:
+      - custom-network
+
+  # mongo:
+  #   image: mongodb/mongodb-community-server:latest
+  #   restart: always
+  #   ports:
+  #     - 27017:27017
+  #   volumes:
+  #     - mongo_volume:/data/db
+  #   environment:
+  #     - MONGODB_INITDB_ROOT_USERNAME=mongo_username
+  #     - MONGODB_INITDB_ROOT_PASSWORD=mongo_password
+
+  rabbitmq:
+    image: rabbitmq:3.12.13-management-alpine
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - rabbitmq_volume:/var/lib/rabbitmq/mnesia
+    networks:
+      - custom-network
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbitmq_username
+      - RABBITMQ_DEFAULT_PASS=rabbitmq_password
+
+  mongo1:
+    image: mongodb/mongodb-community-server:latest
+    command: --replSet rs0
+    container_name: mongo1
+    ports:
+      - 30001:27017
+    networks:
+      - custom-network
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | /rs-init.sh) -eq 1
+      interval: 10s
+      start_period: 30s
+    volumes:
+      - ./docker/rs-init.sh:/rs-init.sh
+      - mongo1_volume:/data/db
+
+  mongo2:
+    image: mongodb/mongodb-community-server:latest
+    command: --replSet rs0
+    container_name: mongo2
+    ports:
+      - 30002:27017
+    networks:
+      - custom-network
+    volumes:
+      - mongo2_volume:/data/db
+
+  mongo3:
+    image: mongodb/mongodb-community-server:latest
+    command: --replSet rs0
+    container_name: mongo3
+    ports:
+      - 30003:27017
+    networks:
+      - custom-network
+    volumes:
+      - mongo3_volume:/data/db
+
+volumes:
+  app_volume:
+  redis_volume:
+  mongo1_volume:
+  mongo2_volume:
+  mongo3_volume:
+  rabbitmq_volume:
+
+networks:
+  custom-network:
+    driver: bridge

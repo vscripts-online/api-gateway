@@ -13,18 +13,19 @@ $ npm install
 ```js
 PORT=3000
 
-JWT_ACCESS_SECRET=JWT_ACCESS_SECRET
-JWT_REFRESH_SECRET=JWT_REFRESH_SECRET
+JWT_SECRET=JWT_SECRET
 
-MONGO_HOST=127.0.0.1
-MONGO_PORT=27017
-MONGO_DATABASE=vscr-cdn
+MONGO_URI=mongodb://mongo1,mongo2,mongo3/vscr-cdn
 
-RABBITMQ_HOST=127.0.0.1
+RABBITMQ_HOST=rabbitmq
+RABBITMQ_USER=rabbitmq_username
+RABBITMQ_PASS=rabbitmq_password
 RABBITMQ_PORT=5672
 
-REDIS_HOST=127.0.0.1
+REDIS_HOST=redis
 REDIS_PORT=6379
+REDIS_USER=redis_username
+REDIS_PASS=redis_password
 REDIS_DATABASE=0
 
 ADMIN_KEY=215acc4b10fbae7f7c11c9556eaba43e
@@ -122,3 +123,5 @@ result: `ZcbR4LPaih2Hc_h9c-3fpA2n9c`
 Adding multiple swagger example responses with one status code -> [source](https://github.com/nestjs/swagger/issues/225#issuecomment-1741826782)
 
 Using 'applyDecorator' function to reduce swagger documentation code crowd -> [source](https://aalonso.dev/blog/how-to-generate-generics-dtos-with-nestjsswagger-422g)
+
+Redis stack authentication [source](https://stackoverflow.com/a/76482901)
