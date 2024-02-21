@@ -11,8 +11,6 @@ services:
       - 3000:3000
     volumes:
       - app_volume:/home/node/app
-    networks:
-      - custom-network
     depends_on:
       - redis
       - mongo1
@@ -24,25 +22,21 @@ services:
     image: redis/redis-stack-server:latest
     restart: always
     ports:
-      - 6379:6379
+      - 26379:6379
     volumes:
       - redis_volume:/data:rw
     environment:
       # referance: https://stackoverflow.com/a/76482901
       - REDIS_ARGS=--save 10 1 --appendonly yes --requirepass redis_password --user redis_username on >redis_password ~* allcommands --user default off nopass nocommands
-    networks:
-      - custom-network
 
   rabbitmq:
     image: rabbitmq:3.12.13-management-alpine
     restart: always
     ports:
-      - 5672:5672
-      - 15672:15672
+      - 25672:5672
+      - 35672:15672
     volumes:
       - rabbitmq_volume:/var/lib/rabbitmq/mnesia
-    networks:
-      - custom-network
     environment:
       - RABBITMQ_DEFAULT_USER=rabbitmq_username
       - RABBITMQ_DEFAULT_PASS=rabbitmq_password
@@ -53,8 +47,6 @@ services:
     container_name: mongo1
     ports:
       - 30001:27017
-    networks:
-      - custom-network
     healthcheck:
       test: test $$(echo "rs.initiate().ok || rs.status().ok" | sh /rs-init.sh) -eq 1
       interval: 10s
@@ -69,8 +61,6 @@ services:
     container_name: mongo2
     ports:
       - 30002:27017
-    networks:
-      - custom-network
     volumes:
       - mongo2_volume:/data/db
 
@@ -80,8 +70,6 @@ services:
     container_name: mongo3
     ports:
       - 30003:27017
-    networks:
-      - custom-network
     volumes:
       - mongo3_volume:/data/db
 
@@ -92,7 +80,3 @@ volumes:
   mongo2_volume:
   mongo3_volume:
   rabbitmq_volume:
-
-networks:
-  custom-network:
-    driver: bridge

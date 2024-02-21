@@ -28,7 +28,9 @@ import { FileRepository } from './repository/file.repository';
 const rabbitmq_client = {
   provide: RABBITMQ_CLIENT,
   useFactory: async () => {
-    const conn = await amqp.connect(`amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@${RABBITMQ_HOST}:${RABBITMQ_PORT}`);
+    const conn = await amqp.connect(
+      `amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@${RABBITMQ_HOST}:${RABBITMQ_PORT}`,
+    );
 
     console.log('Connected to rabbitmq');
     return conn;
