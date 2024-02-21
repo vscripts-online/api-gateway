@@ -33,17 +33,6 @@ services:
     networks:
       - custom-network
 
-  # mongo:
-  #   image: mongodb/mongodb-community-server:latest
-  #   restart: always
-  #   ports:
-  #     - 27017:27017
-  #   volumes:
-  #     - mongo_volume:/data/db
-  #   environment:
-  #     - MONGODB_INITDB_ROOT_USERNAME=mongo_username
-  #     - MONGODB_INITDB_ROOT_PASSWORD=mongo_password
-
   rabbitmq:
     image: rabbitmq:3.12.13-management-alpine
     restart: always
@@ -67,7 +56,7 @@ services:
     networks:
       - custom-network
     healthcheck:
-      test: test $$(echo "rs.initiate().ok || rs.status().ok" | /rs-init.sh) -eq 1
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | sh /rs-init.sh) -eq 1
       interval: 10s
       start_period: 30s
     volumes:
