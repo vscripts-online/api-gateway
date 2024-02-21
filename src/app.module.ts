@@ -2,26 +2,22 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { MONGO_DATABASE, MONGO_HOST, MONGO_PORT, MONGO_USER, MONGO_PASS } from './common/config';
 import { DatabaseModule } from './database/database.module';
 import { AccountModule } from './modules/account/account.module';
 import { CallbackModule } from './modules/callback/callback.module';
 import { ConsumerModule } from './modules/consumer/consumer.module';
 import { FileModule } from './modules/file/file.module';
+import { FilesModule } from './modules/files/files.module';
 import { QueueModule } from './modules/queue/queue.module';
+import { RedisModule } from './modules/redis/redis.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { UploadModule } from './modules/upload/upload.module';
-import { RedisModule } from './modules/redis/redis.module';
 import { UserModule } from './modules/user/user.module';
-import { FilesModule } from './modules/files/files.module';
+import { MONGO_URI } from './common/config';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(`mongodb://${MONGO_HOST}:${MONGO_PORT}`, {
-      dbName: MONGO_DATABASE,
-      user: MONGO_USER,
-      pass: MONGO_PASS
-    }),
+    MongooseModule.forRoot(MONGO_URI),
     DatabaseModule,
     RedisModule,
     AccountModule,
