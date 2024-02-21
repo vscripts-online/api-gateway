@@ -1,9 +1,6 @@
 #!/bin/bash
-
 DELAY=25
-
 mongosh <<EOF
-
 rs.initiate({
     "_id": "rs0",
     "version": 1,
@@ -26,7 +23,5 @@ rs.initiate({
     ]
 }, { force: true });
 EOF
-
 echo "****** Waiting for ${DELAY} seconds for replicaset configuration to be applied ******"
-
 sleep $DELAY
