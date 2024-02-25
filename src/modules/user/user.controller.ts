@@ -49,7 +49,7 @@ export class UserController {
   @ApiBearerAuth()
   @UserChangePasswordResponseDocumentation()
   change_password(
-    @User_Id() _id: string,
+    @User_Id() _id: number,
     @Body() body: UserChangePasswordRequestDTO,
   ) {
     return this.userService.change_password(_id, body);

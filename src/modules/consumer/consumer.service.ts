@@ -7,6 +7,7 @@ import { FileService } from '../file/file.service';
 import { QueueService } from '../queue/queue.service';
 import { StorageService } from '../storage/storage.service';
 import { generateEncodedVerifyCode } from 'src/common/helper';
+import { HMAC_SECRET } from 'src/common/config';
 
 @Injectable()
 export class ConsumerService {
@@ -81,11 +82,11 @@ export class ConsumerService {
 
     console.log('consuming on_send_email...');
     channel.consume(queue, async (data) => {
-      const { _id, email, code } = JSON.parse(
+      const { id, email, code } = JSON.parse(
         data.content.toString(),
       ) as RABBITMQ_CHANNELS_DATAS['SEND_EMAİL_QUEUE'];
 
-      const query = generateEncodedVerifyCode(_id, code);
+      const query = generateEncodedVerifyCode(id, code, HMAC_SECRET);
       const generate_url =
         'https://domain.com/change_password_from_forgot?query=' + query;
       console.log(email, code, query, generate_url);

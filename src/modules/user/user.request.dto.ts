@@ -1,13 +1,8 @@
 import { applyDecorators } from '@nestjs/common';
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-  ApiPropertyOptions,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptions } from '@nestjs/swagger';
 import {
   IsAscii,
   IsEmail,
-  IsOptional,
   IsString,
   IsStrongPassword,
   Length,
@@ -52,17 +47,7 @@ export class UserLoginRequestDTO {
   password: string;
 }
 
-export class UserRegisterRequestDTO extends UserLoginRequestDTO {
-  @ApiPropertyOptional({
-    example: null,
-    description:
-      'When the application is first run, if there is no admin user, it prints admin_key' +
-      ' to the console. The user who registers with this key is registered as admin.',
-  })
-  @IsOptional()
-  @IsString()
-  admin_key: string;
-}
+export class UserRegisterRequestDTO extends UserLoginRequestDTO {}
 
 export class UserChangePasswordRequestDTO {
   @ApiPropertyPassword()

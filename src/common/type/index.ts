@@ -20,7 +20,7 @@ export interface INEW_FILE_UPLOAD_QUEUE_DATA {
 }
 
 export interface ISEND_EMAİL_QUEUE {
-  _id: string;
+  id: number;
   email: string;
   code: number;
 }

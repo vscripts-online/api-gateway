@@ -1015,11 +1015,6 @@
             "minLength": 8,
             "maxLength": 40,
             "description": "Password must contain at least 1 lowercase, 1 uppercase, and 1 numeric character."
-          },
-          "admin_key": {
-            "type": "string",
-            "example": null,
-            "description": "When the application is first run, if there is no admin user, it prints admin_key to the console. The user who registers with this key is registered as admin."
           }
         },
         "required": [

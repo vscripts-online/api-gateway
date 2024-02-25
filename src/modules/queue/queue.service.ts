@@ -48,11 +48,11 @@ export class QueueService {
     }
   }
 
-  send_email(_id: string, email: string, code: number) {
+  send_email(id: number, email: string, code: number) {
     const queue = RABBITMQ_CHANNELS.SEND_EMAİL_QUEUE;
     const channel = this.channels.get(queue);
     const data: RABBITMQ_CHANNELS_DATAS['SEND_EMAİL_QUEUE'] = {
-      _id,
+      id,
       email,
       code,
     };

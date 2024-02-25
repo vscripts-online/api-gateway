@@ -5,6 +5,7 @@ import * as path from 'node:path';
 
 const ENV_STRINGS = {
   PORT: 'PORT',
+  HMAC_SECRET: 'HMAC_SECRET',
   JWT_SECRET: 'JWT_SECRET',
   ADMIN_KEY: 'ADMIN_KEY',
 
@@ -16,9 +17,11 @@ const ENV_STRINGS = {
   RABBITMQ_PASS: 'RABBITMQ_PASS',
 
   SESSION_MS_URI: 'SESSION_MS_URI',
+  USER_MS_URI: 'USER_MS_URI',
 };
 
 export const PORT = getEnvOrThrow(ENV_STRINGS.PORT);
+export const HMAC_SECRET = getEnvOrThrow(ENV_STRINGS.HMAC_SECRET);
 export const JWT_SECRET = getEnvOrThrow(ENV_STRINGS.JWT_SECRET);
 
 export const MONGO_URI = getEnvOrThrow(ENV_STRINGS.MONGO_URI);
@@ -29,8 +32,7 @@ export const RABBITMQ_USER = getEnvOrThrow(ENV_STRINGS.RABBITMQ_USER);
 export const RABBITMQ_PASS = getEnvOrThrow(ENV_STRINGS.RABBITMQ_PASS);
 
 export const SESSION_MS_URI = getEnvOrThrow(ENV_STRINGS.SESSION_MS_URI);
-
-export const ADMIN_KEY = getEnvOrThrow(ENV_STRINGS.ADMIN_KEY);
+export const USER_MS_URI = getEnvOrThrow(ENV_STRINGS.USER_MS_URI);
 
 const SESSION_PROTO_PATH = path.join(process.cwd(), 'src/proto/session.proto');
 
@@ -40,5 +42,16 @@ export const SESSION_MS_GRPC_OPTIONS: ClientOptions = {
     url: SESSION_MS_URI,
     package: 'session',
     protoPath: SESSION_PROTO_PATH,
+  },
+};
+
+const USER_PROTO_PATH = path.join(process.cwd(), 'src/proto/user.proto');
+
+export const USER_MS_GRPC_OPTIONS: ClientOptions = {
+  transport: Transport.GRPC,
+  options: {
+    url: USER_MS_URI,
+    package: 'user',
+    protoPath: USER_PROTO_PATH,
   },
 };

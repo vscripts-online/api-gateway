@@ -29,9 +29,8 @@ export class AuthGuard implements CanActivate {
 
     authorization = authorization.slice(7);
 
-    const [id_b64, session] = authorization.split('|');
-    const id_str = Buffer.from(id_b64, 'base64url').toString('hex');
-    const id = Number(id_str);
+    const [id_radix_36, session] = authorization.split('|');
+    const id = parseInt(id_radix_36, 36);
 
     const valid = await this.redisService.exists(id, session);
 
