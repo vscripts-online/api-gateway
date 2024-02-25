@@ -4,24 +4,22 @@ import {
   InternalServerErrorException,
   forwardRef,
 } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
 import type { Response } from 'express';
+import { Types } from 'mongoose';
 import * as fs from 'node:fs';
 import * as stream from 'node:stream';
-import { AccountRepository, FileRepository, IFileSchema } from 'src/database';
+import { firstValueFrom, toArray } from 'rxjs';
+import { FILE_MS_CLIENT } from 'src/common/config/constants';
+import { IFileServiceMS } from 'src/common/interface';
+import { AccountRepository, IFileSchema } from 'src/database';
 import { FileService } from 'src/modules/file/file.service';
 import { StorageService } from 'src/modules/storage/storage.service';
 import { FilesGetFilesRequestDTO } from './files.request.dto';
-import {
-  FilesGetFileLoadingExceptionDTO,
-  FilesGetFileNotFoundExceptionDTO,
-} from './files.response.dto';
-import { Types } from 'mongoose';
+import { FilesGetFileLoadingExceptionDTO } from './files.response.dto';
 
 @Injectable()
 export class FilesService {
-  @Inject(forwardRef(() => FileRepository))
-  private readonly fileRepository: FileRepository;
-
   @Inject(forwardRef(() => AccountRepository))
   private readonly accountRepository: AccountRepository;
 
@@ -31,8 +29,21 @@ export class FilesService {
   @Inject(forwardRef(() => FileService))
   private readonly fileService: FileService;
 
+  @Inject(forwardRef(() => FILE_MS_CLIENT))
+  private readonly client: ClientGrpc;
+
+  private fileServiceMS: IFileServiceMS;
+
+  onModuleInit() {
+    this.fileServiceMS = this.client.getService('FileService');
+  }
+
   async get_file_from_cloud(res: Response, file: IFileSchema) {
-    await this.fileRepository.set_loading_from_cloud_now(file._id, true);
+    await this.fileServiceMS.SetLoading({
+      _id: file._id,
+      loading_from_cloud_now: false,
+    });
+
     const local_stream = fs.createWriteStream('./upload/' + file.name);
     const pass = new stream.PassThrough();
     pass.pipe(res);
@@ -62,10 +73,7 @@ export class FilesService {
   }
 
   async get_file(res: Response, slug: string) {
-    const file = await this.fileRepository.get_by_slug(slug);
-    if (!file) {
-      throw new FilesGetFileNotFoundExceptionDTO();
-    }
+    const file = await firstValueFrom(this.fileServiceMS.GetBySlug({ slug }));
 
     if (file.loading_from_cloud_now) {
       throw new FilesGetFileLoadingExceptionDTO();
@@ -93,7 +101,10 @@ export class FilesService {
     file_stream.on(
       'end',
       async () =>
-        await this.fileRepository.set_loading_from_cloud_now(file._id, false),
+        await this.fileServiceMS.SetLoading({
+          _id: file._id,
+          loading_from_cloud_now: false,
+        }),
     );
   }
 
@@ -140,6 +151,12 @@ export class FilesService {
     const sort_by = params.sort_by;
     delete params.sort_by;
 
-    return this.fileRepository.get_files(params, { limit, skip }, sort_by);
+    const response = await this.fileServiceMS.GetFiles({
+      where: params,
+      limit: { limit, skip },
+      sort_by,
+    });
+
+    return response.pipe(toArray());
   }
 }

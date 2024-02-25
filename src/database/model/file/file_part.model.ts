@@ -1,9 +1,7 @@
 import { Prop } from '@nestjs/mongoose';
-import * as mongoose from 'mongoose';
-import { AccountSchema } from '../account.model';
 
 export interface IFilePartSchema {
-  owner: AccountSchema;
+  owner: string;
   name: string;
   offset: number;
   size: number;
@@ -11,8 +9,8 @@ export interface IFilePartSchema {
 }
 
 export class FilePartSchema {
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: AccountSchema.name })
-  owner: AccountSchema;
+  @Prop({ nullable: false })
+  owner: string;
 
   @Prop({ nullable: false })
   name: string;

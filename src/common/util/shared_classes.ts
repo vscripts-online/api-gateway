@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { IsOptional, Min } from 'class-validator';
 
 export class CustomBadRequestException extends BadRequestException {
@@ -20,11 +20,13 @@ export class SearchRequestQueryParams {
   @IsOptional()
   @Type(() => Number)
   @Min(0)
+  @Expose()
   skip: number;
 
   @ApiProperty({ example: 20, minLength: 0, required: false, default: 0 })
   @IsOptional()
   @Type(() => Number)
   @Min(0)
+  @Expose()
   limit: number;
 }

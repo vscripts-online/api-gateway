@@ -1,6 +1,5 @@
 import { getEnvOrThrow } from '../util';
-import { ClientOptions } from '@grpc/grpc-js';
-import { Transport } from '@nestjs/microservices';
+import { Transport, ClientOptions } from '@nestjs/microservices';
 import * as path from 'node:path';
 
 const ENV_STRINGS = {
@@ -18,6 +17,7 @@ const ENV_STRINGS = {
 
   SESSION_MS_URI: 'SESSION_MS_URI',
   USER_MS_URI: 'USER_MS_URI',
+  FILE_MS_URI: 'FILE_MS_URI',
 };
 
 export const PORT = getEnvOrThrow(ENV_STRINGS.PORT);
@@ -33,6 +33,7 @@ export const RABBITMQ_PASS = getEnvOrThrow(ENV_STRINGS.RABBITMQ_PASS);
 
 export const SESSION_MS_URI = getEnvOrThrow(ENV_STRINGS.SESSION_MS_URI);
 export const USER_MS_URI = getEnvOrThrow(ENV_STRINGS.USER_MS_URI);
+export const FILE_MS_URI = getEnvOrThrow(ENV_STRINGS.FILE_MS_URI);
 
 const SESSION_PROTO_PATH = path.join(process.cwd(), 'src/proto/session.proto');
 
@@ -42,6 +43,7 @@ export const SESSION_MS_GRPC_OPTIONS: ClientOptions = {
     url: SESSION_MS_URI,
     package: 'session',
     protoPath: SESSION_PROTO_PATH,
+    loader: { keepCase: true },
   },
 };
 
@@ -53,5 +55,18 @@ export const USER_MS_GRPC_OPTIONS: ClientOptions = {
     url: USER_MS_URI,
     package: 'user',
     protoPath: USER_PROTO_PATH,
+    loader: { keepCase: true },
+  },
+};
+
+const FILE_PROTO_PATH = path.join(process.cwd(), 'src/proto/file.proto');
+
+export const FILE_MS_GRPC_OPTIONS: ClientOptions = {
+  transport: Transport.GRPC,
+  options: {
+    url: FILE_MS_URI,
+    package: 'file',
+    protoPath: FILE_PROTO_PATH,
+    loader: { keepCase: true },
   },
 };

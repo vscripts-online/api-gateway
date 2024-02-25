@@ -31,6 +31,7 @@ export class AdminGuard implements CanActivate {
     const is_admin = await firstValueFrom(
       this.userService.IsAdmin({ value: id }),
     );
+
     return is_admin.value;
   }
 }

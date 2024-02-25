@@ -3,30 +3,12 @@ import * as fs from 'node:fs';
 import { AccountTypes } from 'src/common/type';
 import { IAccountSchema, IFilePartSchema } from 'src/database';
 import { AccountRepository } from 'src/database/repository/account.repository';
-import { FileRepository } from 'src/database/repository/file.repository';
 import { GoogleDrive } from './drives';
 
 @Injectable()
 export class StorageService {
   @Inject(forwardRef(() => AccountRepository))
   private readonly accountRepository: AccountRepository;
-
-  @Inject(forwardRef(() => FileRepository))
-  private readonly fileRepository: FileRepository;
-
-  private onApplicationBootstrap() {
-    // this.test()
-    // this.delete_unsynced_files()
-  }
-
-  async delete_unsynced_files() {
-    const unsynced_files = await this.fileRepository.get_unsynced_files();
-    for (const { name, _id } of unsynced_files) {
-      console.log('removing at upload/', name);
-      fs.promises.unlink('./upload/' + name).catch(() => void 0);
-      this.fileRepository.delete_file_by_id(_id);
-    }
-  }
 
   private get_storage(account: IAccountSchema) {
     switch (account.type) {

@@ -66,7 +66,7 @@ export class UserService implements OnModuleInit {
 
     const user = await firstValueFrom(
       this.userService.ChangePassword({
-        currentPassword: current_password,
+        current_password: current_password,
         id: user_id,
         password,
       }),

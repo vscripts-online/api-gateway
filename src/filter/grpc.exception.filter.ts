@@ -4,6 +4,7 @@ import {
   BadRequestException,
   Catch,
   ExceptionFilter,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 
@@ -16,9 +17,20 @@ export class GrpcExceptionsFilter implements ExceptionFilter {
 
     const ctx = host.switchToHttp();
 
-    if (exception.metadata instanceof Metadata) {
-      const err = new BadRequestException(exception.details);
+    const err =
+      exception.metadata instanceof Metadata
+        ? new BadRequestException(exception['details'])
+        : exception;
+
+    try {
       httpAdapter.reply(ctx.getResponse(), err.getResponse(), err.getStatus());
+    } catch (error) {
+      console.log('INTERNAL ERROR', exception);
+      httpAdapter.reply(
+        ctx.getResponse(),
+        new InternalServerErrorException().getResponse(),
+        500,
+      );
     }
   }
 }

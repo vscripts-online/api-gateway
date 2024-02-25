@@ -18,7 +18,7 @@ import { GlobalModule } from './global.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(MONGO_URI),
+    MongooseModule.forRoot(MONGO_URI, { dbName: 'vscr-cdn' }),
     GlobalModule,
     DatabaseModule,
     RedisModule,
