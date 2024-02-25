@@ -1,15 +1,10 @@
 import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
-import { Observable, firstValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
+import { HMAC_SECRET } from 'src/common/config';
 import { USER_MS_CLIENT } from 'src/common/config/constants';
 import { decodeVerifyCode } from 'src/common/helper';
-import { BoolValue__Output } from 'src/pb/google/protobuf/BoolValue';
-import { UserChangePasswordFromForgotPasswordRequestDTO__Output } from 'src/pb/user/UserChangePasswordFromForgotPasswordRequestDTO';
-import { UserChangePasswordRequestDTO__Output } from 'src/pb/user/UserChangePasswordRequestDTO';
-import { UserFineOneDTO__Output } from 'src/pb/user/UserFineOneDTO';
-import { UserForgotPasswordRequestDTO__Output } from 'src/pb/user/UserForgotPasswordRequestDTO';
-import { UserRegisterRequestDTO__Output } from 'src/pb/user/UserRegisterRequestDTO';
-import { UserRegisterResponseDTO__Output } from 'src/pb/user/UserRegisterResponseDTO';
+import { IUserServiceMS } from 'src/common/interface';
 import { RedisService } from '../redis/redis.service';
 import {
   UserChangePasswordFromForgotPasswordRequestDTO,
@@ -22,28 +17,6 @@ import {
   UserForgotPasswordInvalidQueryExceptionDTO,
   UserSessionResponseDTO,
 } from './user.response.dto';
-import { HMAC_SECRET } from 'src/common/config';
-
-interface IUserServiceMS {
-  RegisterUser(
-    data: UserRegisterRequestDTO__Output,
-  ): Observable<UserRegisterResponseDTO__Output>;
-  LoginUser(
-    data: UserRegisterRequestDTO__Output,
-  ): Observable<UserRegisterResponseDTO__Output>;
-  ChangePassword(
-    data: UserChangePasswordRequestDTO__Output,
-  ): Observable<UserRegisterResponseDTO__Output>;
-  ForgotPassword(
-    data: UserForgotPasswordRequestDTO__Output,
-  ): Observable<BoolValue__Output>;
-  ChangePasswordFromForgot(
-    data: UserChangePasswordFromForgotPasswordRequestDTO__Output,
-  ): Observable<UserRegisterResponseDTO__Output>;
-  FindOne(
-    data: UserFineOneDTO__Output,
-  ): Observable<UserRegisterResponseDTO__Output>;
-}
 
 @Injectable()
 export class UserService implements OnModuleInit {

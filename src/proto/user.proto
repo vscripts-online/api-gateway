@@ -22,6 +22,7 @@ service UserService{
   rpc ForgotPassword(UserForgotPasswordRequestDTO) returns (BoolValue) {}
   rpc ChangePasswordFromForgot(UserChangePasswordFromForgotPasswordRequestDTO) returns (UserRegisterResponseDTO) {}
   rpc FindOne(UserFineOneDTO) returns (UserRegisterResponseDTO) {}
+  rpc IsAdmin(UInt32Value) returns (BoolValue) {}
 }
 
 message UserRegisterRequestDTO {

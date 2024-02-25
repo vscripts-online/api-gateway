@@ -14,10 +14,12 @@ import { StorageModule } from './modules/storage/storage.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { UserModule } from './modules/user/user.module';
 import { MONGO_URI } from './common/config';
+import { GlobalModule } from './global.module';
 
 @Module({
   imports: [
     MongooseModule.forRoot(MONGO_URI),
+    GlobalModule,
     DatabaseModule,
     RedisModule,
     AccountModule,

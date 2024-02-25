@@ -13,10 +13,7 @@ import {
   AccountSchemaClass,
   FileSchema,
   FileSchemaClass,
-  UserSchema,
-  UserSchemaClass,
 } from './model';
-import { UserRepository } from './repository';
 import { AccountRepository } from './repository/account.repository';
 import { FileRepository } from './repository/file.repository';
 
@@ -34,15 +31,9 @@ const rabbitmq_client = {
 const schemas = [
   { name: AccountSchema.name, schema: AccountSchemaClass },
   { name: FileSchema.name, schema: FileSchemaClass },
-  { name: UserSchema.name, schema: UserSchemaClass },
 ];
 
-const providers = [
-  rabbitmq_client,
-  AccountRepository,
-  FileRepository,
-  UserRepository,
-];
+const providers = [rabbitmq_client, AccountRepository, FileRepository];
 
 @Global()
 @Module({
