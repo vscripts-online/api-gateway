@@ -2,7 +2,6 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as ms from 'ms';
 import { ADMIN_KEY } from 'src/common/config';
-import { REDIS_NAMESPACES } from 'src/common/type';
 import { randomInteger } from 'src/common/util';
 import { UserRepository } from 'src/database';
 import { QueueService } from '../queue/queue.service';
@@ -62,10 +61,7 @@ export class UserService {
     }
 
     const user = await this.userRepository.new_user(params);
-    const session = await this.redisService.set(
-      user._id,
-      REDIS_NAMESPACES.SESSION,
-    );
+    const session = await this.redisService.set(user._id);
 
     return {
       session:
@@ -86,10 +82,7 @@ export class UserService {
       throw new UserWrongPasswordExceptionDTO();
     }
 
-    const session = await this.redisService.set(
-      user._id,
-      REDIS_NAMESPACES.SESSION,
-    );
+    const session = await this.redisService.set(user._id);
 
     return {
       session:
@@ -114,11 +107,8 @@ export class UserService {
     }
 
     await this.userRepository.change_password(user._id, password);
-    await this.redisService.delete_key(user._id, REDIS_NAMESPACES.SESSION);
-    const session = await this.redisService.set(
-      user._id,
-      REDIS_NAMESPACES.SESSION,
-    );
+    await this.redisService.delete_key(user._id);
+    const session = await this.redisService.set(user._id);
     return {
       session:
         Buffer.from(user._id, 'hex').toString('base64url') + '|' + session,
@@ -205,11 +195,8 @@ export class UserService {
     }
 
     await this.userRepository.change_password(user._id, password);
-    await this.redisService.delete_key(user._id, REDIS_NAMESPACES.SESSION);
-    const session = await this.redisService.set(
-      user._id,
-      REDIS_NAMESPACES.SESSION,
-    );
+    await this.redisService.delete_key(user._id);
+    const session = await this.redisService.set(user._id);
 
     return {
       session:

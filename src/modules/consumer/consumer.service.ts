@@ -26,8 +26,8 @@ export class ConsumerService {
   private readonly fileService: FileService;
 
   onApplicationBootstrap() {
-    this.on_new_file();
-    this.on_send_email();
+    // this.on_new_file();
+    // this.on_send_email();
   }
 
   on_new_file() {

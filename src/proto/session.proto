@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package session;
+
+import "google/protobuf/wrappers.proto";
+
+message SessionUser {
+  uint32 id = 1;
+}
+
+message Session {
+  uint32 id = 1;
+  string session = 2;
+}
+
+service SessionService {
+  rpc NewSession (SessionUser) returns (Session) {}
+  rpc GetSession (Session) returns (BoolValue) {}
+  rpc DelSession (SessionUser) returns (BoolValue) {}
+}

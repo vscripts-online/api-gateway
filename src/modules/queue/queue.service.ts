@@ -13,18 +13,17 @@ export class QueueService {
   private channels: Map<RABBITMQ_CHANNELS, Channel> = new Map();
 
   private async onModuleInit() {
-    const new_file_upload_channel = await this.rabbitmqClient.createChannel();
-    await new_file_upload_channel.assertQueue(
-      RABBITMQ_CHANNELS.NEW_FILE_UPLOAD_QUEUE,
-    );
-    this.channels.set(
-      RABBITMQ_CHANNELS.NEW_FILE_UPLOAD_QUEUE,
-      new_file_upload_channel,
-    );
-
-    const send_email_channel = await this.rabbitmqClient.createChannel();
-    await send_email_channel.assertQueue(RABBITMQ_CHANNELS.SEND_EMAİL_QUEUE);
-    this.channels.set(RABBITMQ_CHANNELS.SEND_EMAİL_QUEUE, send_email_channel);
+    // const new_file_upload_channel = await this.rabbitmqClient.createChannel();
+    // await new_file_upload_channel.assertQueue(
+    //   RABBITMQ_CHANNELS.NEW_FILE_UPLOAD_QUEUE,
+    // );
+    // this.channels.set(
+    //   RABBITMQ_CHANNELS.NEW_FILE_UPLOAD_QUEUE,
+    //   new_file_upload_channel,
+    // );
+    // const send_email_channel = await this.rabbitmqClient.createChannel();
+    // await send_email_channel.assertQueue(RABBITMQ_CHANNELS.SEND_EMAİL_QUEUE);
+    // this.channels.set(RABBITMQ_CHANNELS.SEND_EMAİL_QUEUE, send_email_channel);
   }
 
   public get_channel(channel: RABBITMQ_CHANNELS) {

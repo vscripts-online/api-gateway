@@ -1,4 +1,7 @@
 import { getEnvOrThrow } from '../util';
+import { ClientOptions } from '@grpc/grpc-js';
+import { Transport } from '@nestjs/microservices';
+import * as path from 'node:path';
 
 const ENV_STRINGS = {
   PORT: 'PORT',
@@ -12,11 +15,7 @@ const ENV_STRINGS = {
   RABBITMQ_USER: 'RABBITMQ_USER',
   RABBITMQ_PASS: 'RABBITMQ_PASS',
 
-  REDIS_HOST: 'REDIS_HOST',
-  REDIS_PORT: 'REDIS_PORT',
-  REDIS_USER: 'REDIS_USER',
-  REDIS_PASS: 'REDIS_PASS',
-  REDIS_DATABASE: 'REDIS_DATABASE',
+  SESSION_MS_URI: 'SESSION_MS_URI',
 };
 
 export const PORT = getEnvOrThrow(ENV_STRINGS.PORT);
@@ -29,10 +28,17 @@ export const RABBITMQ_PORT = getEnvOrThrow(ENV_STRINGS.RABBITMQ_PORT);
 export const RABBITMQ_USER = getEnvOrThrow(ENV_STRINGS.RABBITMQ_USER);
 export const RABBITMQ_PASS = getEnvOrThrow(ENV_STRINGS.RABBITMQ_PASS);
 
-export const REDIS_HOST = getEnvOrThrow(ENV_STRINGS.REDIS_HOST);
-export const REDIS_PORT = getEnvOrThrow(ENV_STRINGS.REDIS_PORT);
-export const REDIS_USER = getEnvOrThrow(ENV_STRINGS.REDIS_USER);
-export const REDIS_PASS = getEnvOrThrow(ENV_STRINGS.REDIS_PASS);
-export const REDIS_DATABASE = getEnvOrThrow(ENV_STRINGS.REDIS_DATABASE);
+export const SESSION_MS_URI = getEnvOrThrow(ENV_STRINGS.SESSION_MS_URI);
 
 export const ADMIN_KEY = getEnvOrThrow(ENV_STRINGS.ADMIN_KEY);
+
+const SESSION_PROTO_PATH = path.join(process.cwd(), 'src/proto/session.proto');
+
+export const SESSION_MS_GRPC_OPTIONS: ClientOptions = {
+  transport: Transport.GRPC,
+  options: {
+    url: SESSION_MS_URI,
+    package: 'session',
+    protoPath: SESSION_PROTO_PATH,
+  },
+};

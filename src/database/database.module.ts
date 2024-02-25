@@ -1,18 +1,13 @@
 import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import * as amqp from 'amqplib';
-import { createClient } from 'redis';
 import {
   RABBITMQ_HOST,
   RABBITMQ_PASS,
   RABBITMQ_PORT,
   RABBITMQ_USER,
-  REDIS_HOST,
-  REDIS_PASS,
-  REDIS_PORT,
-  REDIS_USER,
 } from 'src/common/config';
-import { RABBITMQ_CLIENT, REDIS_CLIENT } from 'src/common/config/constants';
+import { RABBITMQ_CLIENT } from 'src/common/config/constants';
 import {
   AccountSchema,
   AccountSchemaClass,
@@ -31,26 +26,7 @@ const rabbitmq_client = {
     const conn = await amqp.connect(
       `amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@${RABBITMQ_HOST}:${RABBITMQ_PORT}`,
     );
-
     console.log('Connected to rabbitmq');
-    return conn;
-  },
-};
-
-const redis_client = {
-  provide: REDIS_CLIENT,
-  useFactory: async () => {
-    const conn = await createClient({
-      url: `redis://${REDIS_USER}:${REDIS_PASS}@${REDIS_HOST}:${REDIS_PORT}`,
-    });
-    conn.on('error', (error) => {
-      console.log('REDIS ERROR', error);
-      process.exit(1);
-    });
-
-    await conn.connect();
-    console.log('Connected to redis');
-
     return conn;
   },
 };
@@ -62,7 +38,6 @@ const schemas = [
 ];
 
 const providers = [
-  redis_client,
   rabbitmq_client,
   AccountRepository,
   FileRepository,

@@ -1,29 +1,37 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
-import * as crypto from 'node:crypto';
-import { RedisClientType } from 'redis';
-import { REDIS_CLIENT } from 'src/common/config/constants';
-import { REDIS_NAMESPACES } from 'src/common/type';
+import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
+import { Observable, firstValueFrom } from 'rxjs';
+import { SESSION_MS_CLIENT } from 'src/common/config/constants';
+import { BoolValue__Output } from 'src/pb/google/protobuf/BoolValue';
+import { Session__Output } from 'src/pb/session/Session';
+import { SessionUser__Output } from 'src/pb/session/SessionUser';
+
+interface SessionService {
+  NewSession(data: SessionUser__Output): Observable<Session__Output>;
+  GetSession(data: Session__Output): Observable<BoolValue__Output>;
+  DelSession(data: SessionUser__Output): Observable<BoolValue__Output>;
+}
 
 @Injectable()
-export class RedisService {
-  @Inject(forwardRef(() => REDIS_CLIENT))
-  private readonly redisClient: RedisClientType;
+export class RedisService implements OnModuleInit {
+  @Inject(forwardRef(() => SESSION_MS_CLIENT))
+  private readonly client: ClientGrpc;
 
-  async set(_id: string, namespace: REDIS_NAMESPACES) {
-    const key = crypto.randomBytes(16).toString('base64url');
-    const result = await this.redisClient.LPUSH(namespace + ':' + _id, key);
-    if (!result) {
-      return this.set(_id, namespace);
-    }
-    return key;
+  private sessionService: SessionService;
+
+  onModuleInit() {
+    this.sessionService = this.client.getService('SessionService');
   }
 
-  async delete_key(_id: string, namespace: REDIS_NAMESPACES) {
-    return this.redisClient.DEL(namespace + ':' + _id);
+  set(id: number) {
+    return firstValueFrom(this.sessionService.NewSession({ id }));
   }
 
-  async exists(key: string, _id: string, namespace: REDIS_NAMESPACES) {
-    const keys = await this.redisClient.LRANGE(namespace + ':' + _id, 0, 100);
-    return keys.includes(key);
+  async delete_key(id: number) {
+    return firstValueFrom(this.sessionService.DelSession({ id }));
+  }
+
+  async exists(id: number, session: string) {
+    return firstValueFrom(this.sessionService.GetSession({ id, session }));
   }
 }
