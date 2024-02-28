@@ -91,57 +91,6 @@
         ]
       }
     },
-    "/account/sync_size/{id}": {
-      "post": {
-        "operationId": "AccountController_sync_size",
-        "summary": "Sync account available_size and storage_size",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns account auth url",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccountSyncSizeResponseDTO"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "If id is not registered": {
-                    "value": {
-                      "message": "Not Found",
-                      "statusCode": 404
-                    }
-                  }
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "tags": [
-          "account"
-        ],
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      }
-    },
     "/account/accounts": {
       "get": {
         "operationId": "AccountController_get_accounts",
@@ -926,7 +875,7 @@
       "AccountUpdateGoogleRequestDTO": {
         "type": "object",
         "properties": {
-          "id": {
+          "_id": {
             "type": "string",
             "example": "65bf9bcf5f7af5dc2f037ab9",
             "minLength": 10
@@ -943,7 +892,7 @@
           }
         },
         "required": [
-          "id",
+          "_id",
           "client_id",
           "client_secret"
         ]
