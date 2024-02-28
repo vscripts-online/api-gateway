@@ -35,3 +35,5 @@ export enum REDIS_NAMESPACES {
 }
 
 export type Class = { new (...args: any[]): any };
+
+export * from './grpc';

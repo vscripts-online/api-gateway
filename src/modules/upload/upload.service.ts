@@ -6,9 +6,10 @@ import {
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import type { Response } from 'express';
+import { FileServiceHandlers } from 'pb/file/FileService';
 import { firstValueFrom } from 'rxjs';
 import { FILE_MS_CLIENT } from 'src/common/config/constants';
-import { IFileServiceMS } from 'src/common/interface';
+import { GrpcService } from 'src/common/type';
 import { IFileHeaderSchema } from 'src/database';
 import { FileService } from '../file/file.service';
 import { QueueService } from '../queue/queue.service';
@@ -24,7 +25,7 @@ export class UploadService {
   @Inject(forwardRef(() => FILE_MS_CLIENT))
   private readonly client: ClientGrpc;
 
-  private fileServiceMS: IFileServiceMS;
+  private fileServiceMS: GrpcService<FileServiceHandlers>;
 
   onModuleInit() {
     this.fileServiceMS = this.client.getService('FileService');
@@ -51,6 +52,8 @@ export class UploadService {
       }),
     );
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
     this.queueService.new_file(file);
     return file;
   }

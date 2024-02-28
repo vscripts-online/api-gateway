@@ -1,10 +1,11 @@
 import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
+import { UserServiceHandlers } from 'pb/user/UserService';
 import { firstValueFrom } from 'rxjs';
 import { HMAC_SECRET } from 'src/common/config';
 import { USER_MS_CLIENT } from 'src/common/config/constants';
 import { decodeVerifyCode } from 'src/common/helper';
-import { IUserServiceMS } from 'src/common/interface';
+import { GrpcService } from 'src/common/type';
 import { RedisService } from '../redis/redis.service';
 import {
   UserChangePasswordFromForgotPasswordRequestDTO,
@@ -26,7 +27,7 @@ export class UserService implements OnModuleInit {
   @Inject(forwardRef(() => USER_MS_CLIENT))
   private readonly client: ClientGrpc;
 
-  private userService: IUserServiceMS;
+  private userService: GrpcService<UserServiceHandlers>;
 
   onModuleInit() {
     this.userService = this.client.getService('UserService');

@@ -1,5 +1,5 @@
 import { getEnvOrThrow } from '../util';
-import { Transport, ClientOptions } from '@nestjs/microservices';
+import { Transport, ClientOptions, GrpcOptions } from '@nestjs/microservices';
 import * as path from 'node:path';
 
 const ENV_STRINGS = {
@@ -35,7 +35,12 @@ export const SESSION_MS_URI = getEnvOrThrow(ENV_STRINGS.SESSION_MS_URI);
 export const USER_MS_URI = getEnvOrThrow(ENV_STRINGS.USER_MS_URI);
 export const FILE_MS_URI = getEnvOrThrow(ENV_STRINGS.FILE_MS_URI);
 
-const SESSION_PROTO_PATH = path.join(process.cwd(), 'src/proto/session.proto');
+const SESSION_PROTO_PATH = path.join(process.cwd(), 'proto/session.proto');
+
+const loader: GrpcOptions['options']['loader'] = {
+  keepCase: true,
+  enums: String,
+};
 
 export const SESSION_MS_GRPC_OPTIONS: ClientOptions = {
   transport: Transport.GRPC,
@@ -43,11 +48,11 @@ export const SESSION_MS_GRPC_OPTIONS: ClientOptions = {
     url: SESSION_MS_URI,
     package: 'session',
     protoPath: SESSION_PROTO_PATH,
-    loader: { keepCase: true },
+    loader,
   },
 };
 
-const USER_PROTO_PATH = path.join(process.cwd(), 'src/proto/user.proto');
+const USER_PROTO_PATH = path.join(process.cwd(), 'proto/user.proto');
 
 export const USER_MS_GRPC_OPTIONS: ClientOptions = {
   transport: Transport.GRPC,
@@ -55,18 +60,19 @@ export const USER_MS_GRPC_OPTIONS: ClientOptions = {
     url: USER_MS_URI,
     package: 'user',
     protoPath: USER_PROTO_PATH,
-    loader: { keepCase: true },
+    loader,
   },
 };
 
-const FILE_PROTO_PATH = path.join(process.cwd(), 'src/proto/file.proto');
+const FILE_PROTO_PATH = path.join(process.cwd(), 'proto/file.proto');
+const ACCOUNT_PROTO_PATH = path.join(process.cwd(), 'proto/account.proto');
 
 export const FILE_MS_GRPC_OPTIONS: ClientOptions = {
   transport: Transport.GRPC,
   options: {
     url: FILE_MS_URI,
-    package: 'file',
-    protoPath: FILE_PROTO_PATH,
-    loader: { keepCase: true },
+    package: ['file', 'account'],
+    protoPath: [FILE_PROTO_PATH, ACCOUNT_PROTO_PATH],
+    loader,
   },
 };

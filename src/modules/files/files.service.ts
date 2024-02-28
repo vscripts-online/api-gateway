@@ -9,9 +9,10 @@ import type { Response } from 'express';
 import { Types } from 'mongoose';
 import * as fs from 'node:fs';
 import * as stream from 'node:stream';
+import { FileServiceHandlers } from 'pb/file/FileService';
 import { firstValueFrom, toArray } from 'rxjs';
 import { FILE_MS_CLIENT } from 'src/common/config/constants';
-import { IFileServiceMS } from 'src/common/interface';
+import { GrpcService } from 'src/common/type';
 import { AccountRepository, IFileSchema } from 'src/database';
 import { FileService } from 'src/modules/file/file.service';
 import { StorageService } from 'src/modules/storage/storage.service';
@@ -32,7 +33,7 @@ export class FilesService {
   @Inject(forwardRef(() => FILE_MS_CLIENT))
   private readonly client: ClientGrpc;
 
-  private fileServiceMS: IFileServiceMS;
+  private fileServiceMS: GrpcService<FileServiceHandlers>;
 
   onModuleInit() {
     this.fileServiceMS = this.client.getService('FileService');
@@ -91,6 +92,8 @@ export class FilesService {
 
     if (file_stream instanceof Error) {
       if (file_stream.message.includes('no such file or directory')) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
         return this.get_file_from_cloud(res, file);
       } else {
         throw new InternalServerErrorException();
@@ -151,8 +154,12 @@ export class FilesService {
     const sort_by = params.sort_by;
     delete params.sort_by;
 
-    const response = await this.fileServiceMS.GetFiles({
+    const response = this.fileServiceMS.GetFiles({
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
       where: params,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
       limit: { limit, skip },
       sort_by,
     });

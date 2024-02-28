@@ -38,4 +38,4 @@ upload/*
 
 secret-*
 
-src/pb/*
+pb/*

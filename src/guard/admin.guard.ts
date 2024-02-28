@@ -7,16 +7,17 @@ import {
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import type { Request } from 'express';
+import { UserServiceHandlers } from 'pb/user/UserService';
 import { firstValueFrom } from 'rxjs';
 import { USER_MS_CLIENT } from 'src/common/config/constants';
-import { IUserServiceMS } from 'src/common/interface';
+import { GrpcService } from 'src/common/type';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
   @Inject(forwardRef(() => USER_MS_CLIENT))
   private readonly client: ClientGrpc;
 
-  private userService: IUserServiceMS;
+  private userService: GrpcService<UserServiceHandlers>;
 
   onModuleInit() {
     this.userService = this.client.getService('UserService');
