@@ -6,7 +6,7 @@ import { SESSION_MS_CLIENT } from 'src/common/config/constants';
 import { GrpcService } from 'src/common/type';
 
 @Injectable()
-export class RedisService implements OnModuleInit {
+export class SessionService implements OnModuleInit {
   @Inject(forwardRef(() => SESSION_MS_CLIENT))
   private readonly client: ClientGrpc;
 

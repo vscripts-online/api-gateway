@@ -6,21 +6,17 @@ import {
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import type { Response } from 'express';
+import { FileHeader__Output } from 'pb/file/FileHeader';
 import { FileServiceHandlers } from 'pb/file/FileService';
 import { firstValueFrom } from 'rxjs';
 import { FILE_MS_CLIENT } from 'src/common/config/constants';
 import { GrpcService } from 'src/common/type';
-import { IFileHeaderSchema } from 'src/database';
 import { FileService } from '../file/file.service';
-import { QueueService } from '../queue/queue.service';
 
 @Injectable()
 export class UploadService {
   @Inject(forwardRef(() => FileService))
   private readonly fileService: FileService;
-
-  @Inject(forwardRef(() => QueueService))
-  private readonly queueService: QueueService;
 
   @Inject(forwardRef(() => FILE_MS_CLIENT))
   private readonly client: ClientGrpc;
@@ -33,7 +29,7 @@ export class UploadService {
 
   async upload(
     uploaded_file: Express.Multer.File,
-    headers: IFileHeaderSchema[],
+    headers: FileHeader__Output[],
   ) {
     const {
       mimetype: mime_type,
@@ -52,9 +48,6 @@ export class UploadService {
       }),
     );
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    this.queueService.new_file(file);
     return file;
   }
 

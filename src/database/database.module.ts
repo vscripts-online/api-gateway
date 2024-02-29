@@ -1,5 +1,4 @@
 import { Global, Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import * as amqp from 'amqplib';
 import {
   RABBITMQ_HOST,
@@ -8,14 +7,6 @@ import {
   RABBITMQ_USER,
 } from 'src/common/config';
 import { RABBITMQ_CLIENT } from 'src/common/config/constants';
-import {
-  AccountSchema,
-  AccountSchemaClass,
-  FileSchema,
-  FileSchemaClass,
-} from './model';
-import { AccountRepository } from './repository/account.repository';
-import { FileRepository } from './repository/file.repository';
 
 const rabbitmq_client = {
   provide: RABBITMQ_CLIENT,
@@ -28,17 +19,12 @@ const rabbitmq_client = {
   },
 };
 
-const schemas = [
-  { name: AccountSchema.name, schema: AccountSchemaClass },
-  { name: FileSchema.name, schema: FileSchemaClass },
-];
-
-const providers = [rabbitmq_client, AccountRepository, FileRepository];
+const providers = [rabbitmq_client];
 
 @Global()
 @Module({
-  imports: [MongooseModule.forFeature(schemas)],
+  imports: [],
   providers,
-  exports: [MongooseModule.forFeature(schemas), ...providers],
+  exports: [...providers],
 })
 export class DatabaseModule {}

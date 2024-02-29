@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -9,24 +10,20 @@ import type { Response } from 'express';
 import { Types } from 'mongoose';
 import * as fs from 'node:fs';
 import * as stream from 'node:stream';
+import { Account__Output } from 'pb/account/Account';
+import { AccountServiceHandlers } from 'pb/account/AccountService';
+import { File__Output } from 'pb/file/File';
 import { FileServiceHandlers } from 'pb/file/FileService';
+import { BytesValue } from 'pb/google/protobuf/BytesValue';
 import { firstValueFrom, toArray } from 'rxjs';
 import { FILE_MS_CLIENT } from 'src/common/config/constants';
 import { GrpcService } from 'src/common/type';
-import { AccountRepository, IFileSchema } from 'src/database';
 import { FileService } from 'src/modules/file/file.service';
-import { StorageService } from 'src/modules/storage/storage.service';
 import { FilesGetFilesRequestDTO } from './files.request.dto';
 import { FilesGetFileLoadingExceptionDTO } from './files.response.dto';
 
 @Injectable()
 export class FilesService {
-  @Inject(forwardRef(() => AccountRepository))
-  private readonly accountRepository: AccountRepository;
-
-  @Inject(forwardRef(() => StorageService))
-  private readonly storageService: StorageService;
-
   @Inject(forwardRef(() => FileService))
   private readonly fileService: FileService;
 
@@ -34,47 +31,79 @@ export class FilesService {
   private readonly client: ClientGrpc;
 
   private fileServiceMS: GrpcService<FileServiceHandlers>;
+  private accountServiceMS: GrpcService<AccountServiceHandlers>;
 
   onModuleInit() {
     this.fileServiceMS = this.client.getService('FileService');
+    this.accountServiceMS = this.client.getService('AccountService');
   }
 
-  async get_file_from_cloud(res: Response, file: IFileSchema) {
-    await this.fileServiceMS.SetLoading({
-      _id: file._id,
-      loading_from_cloud_now: false,
-    });
+  async get_file_from_cloud(res: Response, file: File__Output) {
+    await firstValueFrom(
+      this.fileServiceMS.SetLoading({
+        _id: file._id,
+        loading_from_cloud_now: true,
+      }),
+    );
+
+    const sorted_file_parts =
+      file.parts?.sort((a, b) => a.offset - b.offset) || [];
+
+    if (sorted_file_parts.length === 0) {
+      throw new BadRequestException('File lost');
+    }
 
     const local_stream = fs.createWriteStream('./upload/' + file.name);
     const pass = new stream.PassThrough();
     pass.pipe(res);
     pass.pipe(local_stream);
 
-    const sorted_file_parts = file.parts.sort((a, b) => a.offset - b.offset);
     for (const file_part of sorted_file_parts) {
       await new Promise(async (resolve, reject) => {
-        const account = await this.accountRepository.get_account_by_id(
-          file_part.owner as unknown as string,
-        );
-        const cloud_stream = await this.storageService.get_file_from_storage(
+        const account = (await firstValueFrom(
+          this.accountServiceMS.GetAccount({
+            value: file_part.owner,
+          }),
+        )) as Account__Output;
+
+        const cloud_stream = await this.fileServiceMS.GetFileFromStorage({
           account,
-          file_part,
-        );
-        cloud_stream.on('data', (data) => pass.write(data));
-        cloud_stream.on('error', (error) => {
-          pass.end();
-          reject(error);
+          part: file_part,
         });
-        cloud_stream.on('end', () => resolve(undefined));
+
+        cloud_stream.subscribe({
+          next({ value }: BytesValue) {
+            pass.write(value);
+          },
+          error(error: any) {
+            pass.end();
+            reject(error);
+          },
+          complete() {
+            resolve(undefined);
+          },
+        });
+
+        // const cloud_stream = await this.storageService.get_file_from_storage(
+        //   account,
+        //   file_part,
+        // );
+
+        // cloud_stream.on('data', (data) => pass.write(data));
+        // cloud_stream.on('error', (error) => {
+        //   pass.end();
+        //   reject(error);
+        // });
+        // cloud_stream.on('end', () => resolve(undefined));
       });
     }
-
     pass.end();
     return;
   }
 
   async get_file(res: Response, slug: string) {
-    const file = await firstValueFrom(this.fileServiceMS.GetBySlug({ slug }));
+    const response = this.fileServiceMS.GetBySlug({ slug });
+    const file = await firstValueFrom(response);
 
     if (file.loading_from_cloud_now) {
       throw new FilesGetFileLoadingExceptionDTO();

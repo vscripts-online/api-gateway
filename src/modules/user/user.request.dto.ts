@@ -7,6 +7,10 @@ import {
   IsStrongPassword,
   Length,
 } from 'class-validator';
+import { UserChangePasswordFromForgotPasswordRequestDTO__Output } from 'pb/user/UserChangePasswordFromForgotPasswordRequestDTO';
+import { UserChangePasswordRequestDTO__Output } from 'pb/user/UserChangePasswordRequestDTO';
+import { UserForgotPasswordRequestDTO__Output } from 'pb/user/UserForgotPasswordRequestDTO';
+import { UserRegisterRequestDTO__Output } from 'pb/user/UserRegisterRequestDTO';
 import { IsNotEqualWith } from 'src/common/helper';
 
 export const ApiPropertyPassword = (options: ApiPropertyOptions = {}) => {
@@ -29,7 +33,7 @@ export const ApiPropertyEmail = (options: ApiPropertyOptions = {}) => {
   return applyDecorators(ApiProperty({ ...default_options, ...options }));
 };
 
-export class UserLoginRequestDTO {
+export class UserLoginRequestDTO implements UserRegisterRequestDTO__Output {
   @ApiPropertyEmail()
   @IsEmail()
   @Length(5, 320)
@@ -49,7 +53,9 @@ export class UserLoginRequestDTO {
 
 export class UserRegisterRequestDTO extends UserLoginRequestDTO {}
 
-export class UserChangePasswordRequestDTO {
+export class UserChangePasswordRequestDTO
+  implements Omit<UserChangePasswordRequestDTO__Output, 'id'>
+{
   @ApiPropertyPassword()
   @IsStrongPassword({
     minLength: 8,
@@ -79,14 +85,19 @@ export class UserChangePasswordRequestDTO {
   password: string;
 }
 
-export class UserForgotPasswordRequestDTO {
+export class UserForgotPasswordRequestDTO
+  implements UserForgotPasswordRequestDTO__Output
+{
   @ApiPropertyEmail()
   @IsEmail()
   @Length(5, 320)
   email: string;
 }
 
-export class UserChangePasswordFromForgotPasswordRequestDTO {
+export class UserChangePasswordFromForgotPasswordRequestDTO
+  implements
+    Omit<UserChangePasswordFromForgotPasswordRequestDTO__Output, 'id' | 'code'>
+{
   @ApiProperty({
     minLength: 1,
   })

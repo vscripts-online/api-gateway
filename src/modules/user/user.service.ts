@@ -6,7 +6,7 @@ import { HMAC_SECRET } from 'src/common/config';
 import { USER_MS_CLIENT } from 'src/common/config/constants';
 import { decodeVerifyCode } from 'src/common/helper';
 import { GrpcService } from 'src/common/type';
-import { RedisService } from '../redis/redis.service';
+import { SessionService } from '../session/session.service';
 import {
   UserChangePasswordFromForgotPasswordRequestDTO,
   UserChangePasswordRequestDTO,
@@ -21,8 +21,8 @@ import {
 
 @Injectable()
 export class UserService implements OnModuleInit {
-  @Inject(forwardRef(() => RedisService))
-  private readonly redisService: RedisService;
+  @Inject(forwardRef(() => SessionService))
+  private readonly sessionService: SessionService;
 
   @Inject(forwardRef(() => USER_MS_CLIENT))
   private readonly client: ClientGrpc;
@@ -42,7 +42,7 @@ export class UserService implements OnModuleInit {
       this.userService.RegisterUser({ email, password }),
     );
 
-    const { id, session } = await this.redisService.set(user.id);
+    const { id, session } = await this.sessionService.set(user.id);
 
     return { session: id + '|' + session };
   }
@@ -54,7 +54,7 @@ export class UserService implements OnModuleInit {
       this.userService.LoginUser({ email, password }),
     );
 
-    const { id, session } = await this.redisService.set(user.id);
+    const { id, session } = await this.sessionService.set(user.id);
 
     return { session: id + '|' + session };
   }
@@ -73,8 +73,8 @@ export class UserService implements OnModuleInit {
       }),
     );
 
-    await this.redisService.delete_key(user.id);
-    const { id, session } = await this.redisService.set(user.id);
+    await this.sessionService.delete_key(user.id);
+    const { id, session } = await this.sessionService.set(user.id);
 
     return { session: id + '|' + session };
   }
@@ -106,8 +106,8 @@ export class UserService implements OnModuleInit {
       this.userService.ChangePasswordFromForgot({ code, id, password }),
     );
 
-    await this.redisService.delete_key(user.id);
-    const { session, id: _id } = await this.redisService.set(user.id);
+    await this.sessionService.delete_key(user.id);
+    const { session, id: _id } = await this.sessionService.set(user.id);
 
     return { session: _id + '|' + session };
   }
