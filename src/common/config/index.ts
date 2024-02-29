@@ -13,6 +13,7 @@ const ENV_STRINGS = {
   RABBITMQ_USER: 'RABBITMQ_USER',
   RABBITMQ_PASS: 'RABBITMQ_PASS',
 
+  QUEUE_MS_URI: 'QUEUE_MS_URI',
   SESSION_MS_URI: 'SESSION_MS_URI',
   USER_MS_URI: 'USER_MS_URI',
   FILE_MS_URI: 'FILE_MS_URI',
@@ -30,6 +31,7 @@ export const RABBITMQ_PASS = getEnvOrThrow(ENV_STRINGS.RABBITMQ_PASS);
 export const SESSION_MS_URI = getEnvOrThrow(ENV_STRINGS.SESSION_MS_URI);
 export const USER_MS_URI = getEnvOrThrow(ENV_STRINGS.USER_MS_URI);
 export const FILE_MS_URI = getEnvOrThrow(ENV_STRINGS.FILE_MS_URI);
+export const QUEUE_MS_URI = getEnvOrThrow(ENV_STRINGS.QUEUE_MS_URI);
 
 const SESSION_PROTO_PATH = path.join(process.cwd(), 'proto/session.proto');
 
@@ -62,6 +64,7 @@ export const USER_MS_GRPC_OPTIONS: ClientOptions = {
 
 const FILE_PROTO_PATH = path.join(process.cwd(), 'proto/file.proto');
 const ACCOUNT_PROTO_PATH = path.join(process.cwd(), 'proto/account.proto');
+const QUEUE_PROTO_PATH = path.join(process.cwd(), 'proto/queue.proto');
 
 export const FILE_MS_GRPC_OPTIONS: ClientOptions = {
   transport: Transport.GRPC,
@@ -69,6 +72,16 @@ export const FILE_MS_GRPC_OPTIONS: ClientOptions = {
     url: FILE_MS_URI,
     package: ['file', 'account'],
     protoPath: [FILE_PROTO_PATH, ACCOUNT_PROTO_PATH],
+    loader,
+  },
+};
+
+export const QUEUE_MS_GRPC_OPTIONS: ClientOptions = {
+  transport: Transport.GRPC,
+  options: {
+    url: QUEUE_MS_URI,
+    package: 'queue',
+    protoPath: QUEUE_PROTO_PATH,
     loader,
   },
 };

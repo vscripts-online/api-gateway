@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -10,11 +9,8 @@ import type { Response } from 'express';
 import { Types } from 'mongoose';
 import * as fs from 'node:fs';
 import * as stream from 'node:stream';
-import { Account__Output } from 'pb/account/Account';
-import { AccountServiceHandlers } from 'pb/account/AccountService';
 import { File__Output } from 'pb/file/File';
 import { FileServiceHandlers } from 'pb/file/FileService';
-import { BytesValue } from 'pb/google/protobuf/BytesValue';
 import { firstValueFrom, toArray } from 'rxjs';
 import { FILE_MS_CLIENT } from 'src/common/config/constants';
 import { GrpcService } from 'src/common/type';
@@ -31,26 +27,16 @@ export class FilesService {
   private readonly client: ClientGrpc;
 
   private fileServiceMS: GrpcService<FileServiceHandlers>;
-  private accountServiceMS: GrpcService<AccountServiceHandlers>;
 
   onModuleInit() {
     this.fileServiceMS = this.client.getService('FileService');
-    this.accountServiceMS = this.client.getService('AccountService');
   }
 
   async get_file_from_cloud(res: Response, file: File__Output) {
-    await firstValueFrom(
-      this.fileServiceMS.SetLoading({
-        _id: file._id,
-        loading_from_cloud_now: true,
-      }),
-    );
+    const response = this.fileServiceMS.GetFileFromStorage(file);
 
-    const sorted_file_parts =
-      file.parts?.sort((a, b) => a.offset - b.offset) || [];
-
-    if (sorted_file_parts.length === 0) {
-      throw new BadRequestException('File lost');
+    for (const { key, value } of file.headers || []) {
+      res.set(key, value);
     }
 
     const local_stream = fs.createWriteStream('./upload/' + file.name);
@@ -58,47 +44,19 @@ export class FilesService {
     pass.pipe(res);
     pass.pipe(local_stream);
 
-    for (const file_part of sorted_file_parts) {
-      await new Promise(async (resolve, reject) => {
-        const account = (await firstValueFrom(
-          this.accountServiceMS.GetAccount({
-            value: file_part.owner,
-          }),
-        )) as Account__Output;
-
-        const cloud_stream = await this.fileServiceMS.GetFileFromStorage({
-          account,
-          part: file_part,
-        });
-
-        cloud_stream.subscribe({
-          next({ value }: BytesValue) {
-            pass.write(value);
-          },
-          error(error: any) {
-            pass.end();
-            reject(error);
-          },
-          complete() {
-            resolve(undefined);
-          },
-        });
-
-        // const cloud_stream = await this.storageService.get_file_from_storage(
-        //   account,
-        //   file_part,
-        // );
-
-        // cloud_stream.on('data', (data) => pass.write(data));
-        // cloud_stream.on('error', (error) => {
-        //   pass.end();
-        //   reject(error);
-        // });
-        // cloud_stream.on('end', () => resolve(undefined));
-      });
-    }
-    pass.end();
-    return;
+    response.subscribe({
+      next(data) {
+        const { value } = data;
+        pass.write(value);
+      },
+      complete() {
+        console.log('complete');
+        pass.end();
+      },
+      error(err) {
+        console.log('err', err);
+      },
+    });
   }
 
   async get_file(res: Response, slug: string) {
@@ -109,10 +67,6 @@ export class FilesService {
       throw new FilesGetFileLoadingExceptionDTO();
     }
 
-    for (const { key, value } of file.headers || []) {
-      res.set(key, value);
-    }
-
     const file_stream = await this.fileService.get_file(
       file.name,
       0,
@@ -121,23 +75,29 @@ export class FilesService {
 
     if (file_stream instanceof Error) {
       if (file_stream.message.includes('no such file or directory')) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        return this.get_file_from_cloud(res, file);
+        return this.get_file_from_cloud(res, file as File__Output);
       } else {
         throw new InternalServerErrorException();
       }
     }
 
+    file_stream.on('end', () => {
+      for (const { key, value } of file.headers || []) {
+        res.set(key, value);
+      }
+
+      if (!file.loading_from_cloud_now) {
+        return;
+      }
+
+      const response = this.fileServiceMS.SetLoading({
+        _id: file._id,
+        loading_from_cloud_now: false,
+      });
+
+      firstValueFrom(response);
+    });
     file_stream.pipe(res);
-    file_stream.on(
-      'end',
-      async () =>
-        await this.fileServiceMS.SetLoading({
-          _id: file._id,
-          loading_from_cloud_now: false,
-        }),
-    );
   }
 
   async get_files(params: FilesGetFilesRequestDTO) {
@@ -184,11 +144,7 @@ export class FilesService {
     delete params.sort_by;
 
     const response = this.fileServiceMS.GetFiles({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
       where: params,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
       limit: { limit, skip },
       sort_by,
     });
