@@ -4,45 +4,38 @@ import {
   InternalServerErrorException,
   forwardRef,
 } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
 import type { Response } from 'express';
-import { nanoid } from 'nanoid';
-import { IFileHeaderSchema } from 'src/database';
-import { FileRepository } from 'src/database/repository/file.repository';
+import { FileHeader__Output } from 'pb/file/FileHeader';
+import { FileServiceHandlers } from 'pb/file/FileService';
+import { firstValueFrom } from 'rxjs';
+import { FILE_MS_CLIENT, QUEUE_MS_CLIENT } from 'src/common/config/constants';
+import { GrpcService } from 'src/common/type';
 import { FileService } from '../file/file.service';
-import { QueueService } from '../queue/queue.service';
+import { QueueServiceHandlers } from 'pb/queue/QueueService';
 
 @Injectable()
 export class UploadService {
-  @Inject(forwardRef(() => FileRepository))
-  private readonly fileRepository: FileRepository;
-
   @Inject(forwardRef(() => FileService))
   private readonly fileService: FileService;
 
-  @Inject(forwardRef(() => QueueService))
-  private readonly queueService: QueueService;
+  @Inject(forwardRef(() => FILE_MS_CLIENT))
+  private readonly file_ms_client: ClientGrpc;
 
-  private async createSlug() {
-    const slug = nanoid(8);
+  @Inject(forwardRef(() => QUEUE_MS_CLIENT))
+  private readonly queue_ms_client: ClientGrpc;
 
-    if (
-      ['-', '_'].includes(slug[0]) ||
-      ['-', '_'].includes(slug[slug.length - 1])
-    ) {
-      return this.createSlug();
-    }
+  private fileServiceMS: GrpcService<FileServiceHandlers>;
+  private queueServiceMS: GrpcService<QueueServiceHandlers>;
 
-    const exists = await this.fileRepository.is_slug_exists(slug);
-    if (exists) {
-      return this.createSlug();
-    }
-
-    return slug;
+  onModuleInit() {
+    this.fileServiceMS = this.file_ms_client.getService('FileService');
+    this.queueServiceMS = this.queue_ms_client.getService('QueueService');
   }
 
   async upload(
     uploaded_file: Express.Multer.File,
-    headers: IFileHeaderSchema[],
+    headers: FileHeader__Output[],
   ) {
     const {
       mimetype: mime_type,
@@ -50,17 +43,19 @@ export class UploadService {
       originalname: original_name,
       size,
     } = uploaded_file;
-    const slug = await this.createSlug();
-    const file = await this.fileRepository.new_file({
-      mime_type,
-      name,
-      original_name,
-      size,
-      slug,
-      headers,
-      parts: [],
-    });
-    this.queueService.new_file(file);
+
+    const file = await firstValueFrom(
+      this.fileServiceMS.CreateFile({
+        headers,
+        mime_type,
+        name,
+        original_name,
+        size,
+      }),
+    );
+
+    firstValueFrom(this.queueServiceMS.NewFileUploaded({ value: file._id }));
+
     return file;
   }
 

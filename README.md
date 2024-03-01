@@ -13,22 +13,13 @@ $ npm install
 ```js
 PORT=3000
 
-JWT_SECRET=JWT_SECRET
+SESSION_MS_URI=host.docker.internal:20000
+QUEUE_MS_URI=host.docker.internal:20001
+USER_MS_URI=host.docker.internal:20002
+FILE_MS_URI=host.docker.internal:20003
 
-MONGO_URI=mongodb://mongo1,mongo2,mongo3/vscr-cdn
-
-RABBITMQ_HOST=rabbitmq
-RABBITMQ_USER=rabbitmq_username
-RABBITMQ_PASS=rabbitmq_password
-RABBITMQ_PORT=5672
-
-REDIS_HOST=redis
-REDIS_PORT=6379
-REDIS_USER=redis_username
-REDIS_PASS=redis_password
-REDIS_DATABASE=0
-
-ADMIN_KEY=215acc4b10fbae7f7c11c9556eaba43e
+HMAC_SECRET=rmR6aiKelvDnIqIp2rUtwsBmD8ZbtjPrg4i1dJLYoDetXPbX4Vh0O8kChcD6OTfZXLh_NjOHU7ob-lA40CKudbDwXWEH5BZ7_saixeS3foxDuzvU3uskS84JdU5vmzI61TGZso_Wd6OIQH5H8gg7HFJmqbMlqCIuavqjqC-Li7M
+JWT_SECRET=wrL3EZegwtbbKXQKrlq7MW0HD_d3y7bn_wNm3O6xHSfF2ywB5cPM6fkJSkSufSXsOwFr_irtRZmqTJrKIwjGZvExYVy_ewBeaJe9S2h505sYsHwl0maNEngAdEUm4D9mY7b6j3ipjtrj7wsd8BwpKrpPcoHXTjeQLMcYBdbVqtY
 ```
 
 ## Running the app

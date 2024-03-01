@@ -1,8 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, Length } from 'class-validator';
+import { AccountUpdateGoogleRequestDTO__Output } from 'pb/account/AccountUpdateGoogleRequestDTO';
+import { NewAccountRequestDTO__Output } from 'pb/account/NewAccountRequestDTO';
 import { AccountTypes } from 'src/common/type';
 
-export class NewAccountRequestDTO {
+export class NewAccountRequestDTO implements NewAccountRequestDTO__Output {
   @ApiProperty({ example: AccountTypes.GOOGLE, enum: AccountTypes })
   @IsEnum(AccountTypes)
   type: AccountTypes;
@@ -13,14 +15,16 @@ export class NewAccountRequestDTO {
   label: string;
 }
 
-export class AccountUpdateGoogleRequestDTO {
+export class AccountUpdateGoogleRequestDTO
+  implements AccountUpdateGoogleRequestDTO__Output
+{
   @ApiProperty({
     example: '65bf9bcf5f7af5dc2f037ab9',
     minLength: 10,
   })
   @IsString()
   @Length(10)
-  id: string;
+  _id: string;
 
   @ApiProperty({
     example:

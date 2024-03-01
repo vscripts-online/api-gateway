@@ -4,75 +4,67 @@ import {
   InternalServerErrorException,
   forwardRef,
 } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
 import type { Response } from 'express';
+import { Types } from 'mongoose';
 import * as fs from 'node:fs';
 import * as stream from 'node:stream';
-import { AccountRepository, FileRepository, IFileSchema } from 'src/database';
+import { File__Output } from 'pb/file/File';
+import { FileServiceHandlers } from 'pb/file/FileService';
+import { firstValueFrom, toArray } from 'rxjs';
+import { FILE_MS_CLIENT } from 'src/common/config/constants';
+import { GrpcService } from 'src/common/type';
 import { FileService } from 'src/modules/file/file.service';
-import { StorageService } from 'src/modules/storage/storage.service';
 import { FilesGetFilesRequestDTO } from './files.request.dto';
-import {
-  FilesGetFileLoadingExceptionDTO,
-  FilesGetFileNotFoundExceptionDTO,
-} from './files.response.dto';
-import { Types } from 'mongoose';
+import { FilesGetFileLoadingExceptionDTO } from './files.response.dto';
 
 @Injectable()
 export class FilesService {
-  @Inject(forwardRef(() => FileRepository))
-  private readonly fileRepository: FileRepository;
-
-  @Inject(forwardRef(() => AccountRepository))
-  private readonly accountRepository: AccountRepository;
-
-  @Inject(forwardRef(() => StorageService))
-  private readonly storageService: StorageService;
-
   @Inject(forwardRef(() => FileService))
   private readonly fileService: FileService;
 
-  async get_file_from_cloud(res: Response, file: IFileSchema) {
-    await this.fileRepository.set_loading_from_cloud_now(file._id, true);
+  @Inject(forwardRef(() => FILE_MS_CLIENT))
+  private readonly client: ClientGrpc;
+
+  private fileServiceMS: GrpcService<FileServiceHandlers>;
+
+  onModuleInit() {
+    this.fileServiceMS = this.client.getService('FileService');
+  }
+
+  async get_file_from_cloud(res: Response, file: File__Output) {
+    const response = this.fileServiceMS.GetFileFromStorage(file);
+
+    for (const { key, value } of file.headers || []) {
+      res.set(key, value);
+    }
+
     const local_stream = fs.createWriteStream('./upload/' + file.name);
     const pass = new stream.PassThrough();
     pass.pipe(res);
     pass.pipe(local_stream);
 
-    const sorted_file_parts = file.parts.sort((a, b) => a.offset - b.offset);
-    for (const file_part of sorted_file_parts) {
-      await new Promise(async (resolve, reject) => {
-        const account = await this.accountRepository.get_account_by_id(
-          file_part.owner as unknown as string,
-        );
-        const cloud_stream = await this.storageService.get_file_from_storage(
-          account,
-          file_part,
-        );
-        cloud_stream.on('data', (data) => pass.write(data));
-        cloud_stream.on('error', (error) => {
-          pass.end();
-          reject(error);
-        });
-        cloud_stream.on('end', () => resolve(undefined));
-      });
-    }
-
-    pass.end();
-    return;
+    response.subscribe({
+      next(data) {
+        const { value } = data;
+        pass.write(value);
+      },
+      complete() {
+        console.log('complete');
+        pass.end();
+      },
+      error(err) {
+        console.log('err', err);
+      },
+    });
   }
 
   async get_file(res: Response, slug: string) {
-    const file = await this.fileRepository.get_by_slug(slug);
-    if (!file) {
-      throw new FilesGetFileNotFoundExceptionDTO();
-    }
+    const response = this.fileServiceMS.GetBySlug({ slug });
+    const file = await firstValueFrom(response);
 
     if (file.loading_from_cloud_now) {
       throw new FilesGetFileLoadingExceptionDTO();
-    }
-
-    for (const { key, value } of file.headers || []) {
-      res.set(key, value);
     }
 
     const file_stream = await this.fileService.get_file(
@@ -83,18 +75,29 @@ export class FilesService {
 
     if (file_stream instanceof Error) {
       if (file_stream.message.includes('no such file or directory')) {
-        return this.get_file_from_cloud(res, file);
+        return this.get_file_from_cloud(res, file as File__Output);
       } else {
         throw new InternalServerErrorException();
       }
     }
 
+    file_stream.on('end', () => {
+      for (const { key, value } of file.headers || []) {
+        res.set(key, value);
+      }
+
+      if (!file.loading_from_cloud_now) {
+        return;
+      }
+
+      const response = this.fileServiceMS.SetLoading({
+        _id: file._id,
+        loading_from_cloud_now: false,
+      });
+
+      firstValueFrom(response);
+    });
     file_stream.pipe(res);
-    file_stream.on(
-      'end',
-      async () =>
-        await this.fileRepository.set_loading_from_cloud_now(file._id, false),
-    );
   }
 
   async get_files(params: FilesGetFilesRequestDTO) {
@@ -140,6 +143,12 @@ export class FilesService {
     const sort_by = params.sort_by;
     delete params.sort_by;
 
-    return this.fileRepository.get_files(params, { limit, skip }, sort_by);
+    const response = this.fileServiceMS.GetFiles({
+      where: params,
+      limit: { limit, skip },
+      sort_by,
+    });
+
+    return response.pipe(toArray());
   }
 }

@@ -20,7 +20,7 @@ export interface INEW_FILE_UPLOAD_QUEUE_DATA {
 }
 
 export interface ISEND_EMAİL_QUEUE {
-  _id: string;
+  id: number;
   email: string;
   code: number;
 }
@@ -35,3 +35,5 @@ export enum REDIS_NAMESPACES {
 }
 
 export type Class = { new (...args: any[]): any };
+
+export * from './grpc';

@@ -7,13 +7,12 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { REDIS_NAMESPACES } from 'src/common/type';
-import { RedisService } from 'src/modules/redis/redis.service';
+import { SessionService } from 'src/modules/session/session.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  @Inject(forwardRef(() => RedisService))
-  private readonly redisService: RedisService;
+  @Inject(forwardRef(() => SessionService))
+  private readonly sessionService: SessionService;
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const http = context.switchToHttp();
@@ -30,17 +29,13 @@ export class AuthGuard implements CanActivate {
 
     authorization = authorization.slice(7);
 
-    const [_id_b64, session] = authorization.split('|');
-    const _id = Buffer.from(_id_b64, 'base64url').toString('hex');
+    const [id_radix_36, session] = authorization.split('|');
+    const id = parseInt(id_radix_36, 36);
 
-    const valid = await this.redisService.exists(
-      session,
-      _id,
-      REDIS_NAMESPACES.SESSION,
-    );
+    const valid = await this.sessionService.exists(id, session);
 
     if (valid) {
-      request['_id'] = _id;
+      request['_id'] = id;
     }
 
     return true;

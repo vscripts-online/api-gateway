@@ -5,21 +5,34 @@ import {
   Injectable,
   forwardRef,
 } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
 import type { Request } from 'express';
-import { UserRepository } from 'src/database';
+import { UserServiceHandlers } from 'pb/user/UserService';
+import { firstValueFrom } from 'rxjs';
+import { USER_MS_CLIENT } from 'src/common/config/constants';
+import { GrpcService } from 'src/common/type';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
-  @Inject(forwardRef(() => UserRepository))
-  private readonly userRepository: UserRepository;
+  @Inject(forwardRef(() => USER_MS_CLIENT))
+  private readonly client: ClientGrpc;
+
+  private userService: GrpcService<UserServiceHandlers>;
+
+  onModuleInit() {
+    this.userService = this.client.getService('UserService');
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const http = context.switchToHttp();
     const request = http.getRequest<Request>();
 
-    const _id = request['_id'];
+    const id = request['_id'];
 
-    const user = await this.userRepository.find_one_by_id(_id);
-    return user?.admin;
+    const is_admin = await firstValueFrom(
+      this.userService.IsAdmin({ value: id }),
+    );
+
+    return is_admin.value;
   }
 }

@@ -12,6 +12,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { SearchRequestQueryParams } from 'src/common/util';
 import { AdminGuard, AuthGuard } from 'src/guard';
 import {
   AccountUpdateGoogleRequestDTO,
@@ -23,9 +24,7 @@ import {
   AccountGetAccountsResponseDocumentation,
   AccountLoginUrlGoogleResponseDocumentation,
   AccountNewAccountResponseDocumentation,
-  AccountSyncSizeResponseDocumentation,
 } from './account.swagger';
-import { SearchRequestQueryParams } from 'src/common/util';
 
 @UseGuards(AuthGuard, AdminGuard)
 @ApiBearerAuth()
@@ -48,12 +47,12 @@ export class AccountController {
     return this.authService.login_url_google(body);
   }
 
-  @HttpCode(200)
-  @Post('/sync_size/:id')
-  @AccountSyncSizeResponseDocumentation()
-  sync_size(@Param('id') id: string) {
-    return this.authService.sync_size(id);
-  }
+  // @HttpCode(200)
+  // @Post('/sync_size/:id')
+  // @AccountSyncSizeResponseDocumentation()
+  // sync_size(@Param('id') id: string) {
+  //   return this.authService.sync_size(id);
+  // }
 
   @Get('/accounts')
   @AccountGetAccountsResponseDocumentation()
