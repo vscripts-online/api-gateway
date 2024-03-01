@@ -39,3 +39,4 @@ upload/*
 secret-*
 
 pb/*
+document.json

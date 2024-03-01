@@ -7,76 +7,14 @@ services:
       context: .
     environment:
       NODE_ENV: production
+      PORT: 3000
+      SESSION_MS_URI: host.docker.internal:20000
+      QUEUE_MS_URI: host.docker.internal:20001
+      USER_MS_URI: host.docker.internal:20002
+      FILE_MS_URI: host.docker.internal:20003
+      HMAC_SECRET: rmR6aiKelvDnIqIp2rUtwsBmD8ZbtjPrg4i1dJLYoDetXPbX4Vh0O8kChcD6OTfZXLh_NjOHU7ob-lA40CKudbDwXWEH5BZ7_saixeS3foxDuzvU3uskS84JdU5vmzI61TGZso_Wd6OIQH5H8gg7HFJmqbMlqCIuavqjqC-Li7M
+      JWT_SECRET: wrL3EZegwtbbKXQKrlq7MW0HD_d3y7bn_wNm3O6xHSfF2ywB5cPM6fkJSkSufSXsOwFr_irtRZmqTJrKIwjGZvExYVy_ewBeaJe9S2h505sYsHwl0maNEngAdEUm4D9mY7b6j3ipjtrj7wsd8BwpKrpPcoHXTjeQLMcYBdbVqtY
     ports:
       - 3000:3000
-    volumes:
-      - app_volume:/home/node/app
-    depends_on:
-      - redis
-      - mongo1
-      - mongo2
-      - mongo3
-      - rabbitmq
-
-  redis:
-    image: redis/redis-stack-server:latest
-    restart: always
-    ports:
-      - 26379:6379
-    volumes:
-      - redis_volume:/data:rw
-    environment:
-      # referance: https://stackoverflow.com/a/76482901
-      - REDIS_ARGS=--save 10 1 --appendonly yes --requirepass redis_password --user redis_username on >redis_password ~* allcommands --user default off nopass nocommands
-
-  rabbitmq:
-    image: rabbitmq:3.12.13-management-alpine
-    restart: always
-    ports:
-      - 25672:5672
-      - 35672:15672
-    volumes:
-      - rabbitmq_volume:/var/lib/rabbitmq/mnesia
-    environment:
-      - RABBITMQ_DEFAULT_USER=rabbitmq_username
-      - RABBITMQ_DEFAULT_PASS=rabbitmq_password
-
-  mongo1:
-    image: mongodb/mongodb-community-server:latest
-    command: --replSet rs0
-    container_name: mongo1
-    ports:
-      - 30001:27017
-    healthcheck:
-      test: test $$(echo "rs.initiate().ok || rs.status().ok" | sh /rs-init.sh) -eq 1
-      interval: 10s
-      start_period: 30s
-    volumes:
-      - ./docker/rs-init.sh:/rs-init.sh
-      - mongo1_volume:/data/db
-
-  mongo2:
-    image: mongodb/mongodb-community-server:latest
-    command: --replSet rs0
-    container_name: mongo2
-    ports:
-      - 30002:27017
-    volumes:
-      - mongo2_volume:/data/db
-
-  mongo3:
-    image: mongodb/mongodb-community-server:latest
-    command: --replSet rs0
-    container_name: mongo3
-    ports:
-      - 30003:27017
-    volumes:
-      - mongo3_volume:/data/db
-
-volumes:
-  app_volume:
-  redis_volume:
-  mongo1_volume:
-  mongo2_volume:
-  mongo3_volume:
-  rabbitmq_volume:
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
