@@ -18,3 +18,13 @@ services:
       - 3000:3000
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+    volumes:
+      - cdn_volume://home/node/app/upload
+    networks:
+      - cdn
+
+networks:
+  cdn:
+
+volumes:
+  cdn_volume:
