@@ -88,7 +88,7 @@ export class UserService implements OnModuleInit {
       this.userService.ForgotPassword({ email }),
     );
 
-    return response.value;
+    return response.success;
   }
 
   async change_password_from_forgot(
