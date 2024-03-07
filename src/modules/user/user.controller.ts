@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Inject,
   Post,
@@ -21,6 +22,7 @@ import { UserService } from './user.service';
 import {
   UserChangePasswordFromForgotResponseDocumentation,
   UserChangePasswordResponseDocumentation,
+  UserForgotPasswordResponseDocumentation,
   UserLoginResponseDocumentation,
   UserRegisterResponseDocumentation,
 } from './user.swagger';
@@ -49,14 +51,14 @@ export class UserController {
   @ApiBearerAuth()
   @UserChangePasswordResponseDocumentation()
   change_password(
-    @User_Id() _id: number,
+    @User_Id() id: number,
     @Body() body: UserChangePasswordRequestDTO,
   ) {
-    return this.userService.change_password(_id, body);
+    return this.userService.change_password(id, body);
   }
 
   @Post('/forgot_password')
-  @UserChangePasswordResponseDocumentation()
+  @UserForgotPasswordResponseDocumentation()
   forgot_password(@Body() body: UserForgotPasswordRequestDTO) {
     return this.userService.forgot_password(body);
   }
@@ -68,5 +70,12 @@ export class UserController {
     @Body() body: UserChangePasswordFromForgotPasswordRequestDTO,
   ) {
     return this.userService.change_password_from_forgot(body);
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  @Get('/me')
+  me(@User_Id() id: number) {
+    return this.userService.me(id);
   }
 }

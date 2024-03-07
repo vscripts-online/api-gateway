@@ -111,4 +111,9 @@ export class UserService implements OnModuleInit {
 
     return { session: _id + '|' + session };
   }
+
+  async me(id: number) {
+    const user = await firstValueFrom(this.userService.me({ id }));
+    return user;
+  }
 }
