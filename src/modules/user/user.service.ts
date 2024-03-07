@@ -1,9 +1,9 @@
 import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { UserServiceHandlers } from 'pb/user/UserService';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, toArray } from 'rxjs';
 import { HMAC_SECRET } from 'src/common/config';
-import { USER_MS_CLIENT } from 'src/common/config/constants';
+import { FILE_MS_CLIENT, USER_MS_CLIENT } from 'src/common/config/constants';
 import { decodeVerifyCode } from 'src/common/helper';
 import { GrpcService } from 'src/common/type';
 import { SessionService } from '../session/session.service';
@@ -11,6 +11,7 @@ import {
   UserChangePasswordFromForgotPasswordRequestDTO,
   UserChangePasswordRequestDTO,
   UserForgotPasswordRequestDTO,
+  UserGetFilesRequestDTO,
   UserLoginRequestDTO,
   UserRegisterRequestDTO,
 } from './user.request.dto';
@@ -18,6 +19,7 @@ import {
   UserForgotPasswordInvalidQueryExceptionDTO,
   UserSessionResponseDTO,
 } from './user.response.dto';
+import { FileServiceHandlers } from 'pb/file/FileService';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -25,12 +27,17 @@ export class UserService implements OnModuleInit {
   private readonly sessionService: SessionService;
 
   @Inject(forwardRef(() => USER_MS_CLIENT))
-  private readonly client: ClientGrpc;
+  private readonly user_ms_client: ClientGrpc;
 
-  private userService: GrpcService<UserServiceHandlers>;
+  @Inject(forwardRef(() => FILE_MS_CLIENT))
+  private readonly file_ms_client: ClientGrpc;
+
+  private userServiceMS: GrpcService<UserServiceHandlers>;
+  private fileServiceMS: GrpcService<FileServiceHandlers>;
 
   onModuleInit() {
-    this.userService = this.client.getService('UserService');
+    this.userServiceMS = this.user_ms_client.getService('UserService');
+    this.fileServiceMS = this.file_ms_client.getService('FileService');
   }
 
   async register(
@@ -39,7 +46,7 @@ export class UserService implements OnModuleInit {
     const { email, password } = params;
 
     const user = await firstValueFrom(
-      this.userService.RegisterUser({ email, password }),
+      this.userServiceMS.RegisterUser({ email, password }),
     );
 
     const { id, session } = await this.sessionService.set(user.id);
@@ -51,7 +58,7 @@ export class UserService implements OnModuleInit {
     const { email, password } = params;
 
     const user = await firstValueFrom(
-      this.userService.LoginUser({ email, password }),
+      this.userServiceMS.LoginUser({ email, password }),
     );
 
     const { id, session } = await this.sessionService.set(user.id);
@@ -66,7 +73,7 @@ export class UserService implements OnModuleInit {
     const { current_password, password } = params;
 
     const user = await firstValueFrom(
-      this.userService.ChangePassword({
+      this.userServiceMS.ChangePassword({
         current_password: current_password,
         id: user_id,
         password,
@@ -85,7 +92,7 @@ export class UserService implements OnModuleInit {
     const { email } = params;
 
     const response = await firstValueFrom(
-      this.userService.ForgotPassword({ email }),
+      this.userServiceMS.ForgotPassword({ email }),
     );
 
     return response.success;
@@ -103,7 +110,7 @@ export class UserService implements OnModuleInit {
     const { id, code } = decoded;
 
     const user = await firstValueFrom(
-      this.userService.ChangePasswordFromForgot({ code, id, password }),
+      this.userServiceMS.ChangePasswordFromForgot({ code, id, password }),
     );
 
     await this.sessionService.delete_key(user.id);
@@ -113,7 +120,21 @@ export class UserService implements OnModuleInit {
   }
 
   async me(id: number) {
-    const user = await firstValueFrom(this.userService.me({ id }));
+    const user = await firstValueFrom(this.userServiceMS.me({ id }));
     return user;
+  }
+
+  async get_files(user: number, params: UserGetFilesRequestDTO) {
+    const { limit, skip } = params;
+    delete params.limit;
+    delete params.skip;
+
+    const response = this.fileServiceMS.GetFiles({
+      where: { ...params, user },
+      limit: { limit, skip },
+      sort_by: 'created_at',
+    });
+
+    return response.pipe(toArray());
   }
 }

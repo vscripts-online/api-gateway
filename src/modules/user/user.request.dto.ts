@@ -1,5 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptions } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 import {
   IsAscii,
   IsEmail,
@@ -12,6 +13,7 @@ import { UserChangePasswordRequestDTO__Output } from 'pb/user/UserChangePassword
 import { UserForgotPasswordRequestDTO__Output } from 'pb/user/UserForgotPasswordRequestDTO';
 import { UserRegisterRequestDTO__Output } from 'pb/user/UserRegisterRequestDTO';
 import { IsNotEqualWith } from 'src/common/helper';
+import { SearchRequestQueryParams } from 'src/common/util';
 
 export const ApiPropertyPassword = (options: ApiPropertyOptions = {}) => {
   const default_options = {
@@ -115,4 +117,10 @@ export class UserChangePasswordFromForgotPasswordRequestDTO
   @IsAscii()
   @Length(8, 40)
   password: string;
+}
+
+export class UserGetFilesRequestDTO extends SearchRequestQueryParams {
+  @ApiProperty({ example: 'suc0aNkQ', required: false })
+  @Expose()
+  slug?: string;
 }

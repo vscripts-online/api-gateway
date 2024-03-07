@@ -1,10 +1,12 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   HttpCode,
   Inject,
   Post,
+  Query,
   UseGuards,
   forwardRef,
 } from '@nestjs/common';
@@ -15,6 +17,7 @@ import {
   UserChangePasswordFromForgotPasswordRequestDTO,
   UserChangePasswordRequestDTO,
   UserForgotPasswordRequestDTO,
+  UserGetFilesRequestDTO,
   UserLoginRequestDTO,
   UserRegisterRequestDTO,
 } from './user.request.dto';
@@ -26,6 +29,8 @@ import {
   UserLoginResponseDocumentation,
   UserRegisterResponseDocumentation,
 } from './user.swagger';
+import { plainToInstance } from 'class-transformer';
+import { validateOrReject } from 'class-validator';
 
 @ApiTags('user')
 @Controller('/user')
@@ -77,5 +82,20 @@ export class UserController {
   @Get('/me')
   me(@User_Id() id: number) {
     return this.userService.me(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Get('/files')
+  async get_files(@Query() _params: any, @User_Id() user_id: number) {
+    const params = plainToInstance(UserGetFilesRequestDTO, _params, {
+      excludeExtraneousValues: true,
+      exposeUnsetFields: false,
+    });
+    await validateOrReject(params).catch((e) => {
+      throw new BadRequestException(Array.isArray(e) ? e[0].constraints : e);
+    });
+
+    return this.userService.get_files(user_id, params);
   }
 }
