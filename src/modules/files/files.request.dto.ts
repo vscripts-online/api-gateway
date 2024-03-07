@@ -23,18 +23,6 @@ export class FilesGetFilesRequestDTO extends SearchRequestQueryParams {
   @Expose()
   name?: string;
 
-  @ApiProperty({ example: '2024-02-04T22:23:07.165Z', required: false })
-  @IsOptional()
-  @IsDateString()
-  @Expose()
-  time_lte?: string;
-
-  @ApiProperty({ example: '2024-02-04T22:23:07.165Z', required: false })
-  @IsOptional()
-  @IsDateString()
-  @Expose()
-  time_gte?: string;
-
   @ApiProperty({ example: bytes('100mb'), required: false })
   @IsOptional()
   @Type(() => Number)
@@ -87,4 +75,32 @@ export class FilesGetFilesRequestDTO extends SearchRequestQueryParams {
   @ApiProperty({ example: '-_id size', required: false })
   @Expose()
   sort_by?: string;
+
+  @ApiProperty({ example: 1, required: false })
+  @Expose()
+  user?: number;
+
+  @ApiProperty({ example: '2024-02-04T22:23:07.165Z', required: false })
+  @IsOptional()
+  @IsDateString()
+  @Expose()
+  created_at_lte?: string;
+
+  @ApiProperty({ example: '2024-02-04T22:23:07.165Z', required: false })
+  @IsOptional()
+  @IsDateString()
+  @Expose()
+  created_at_gte?: string;
+
+  @ApiProperty({ example: '2024-02-04T22:23:07.165Z', required: false })
+  @IsOptional()
+  @IsDateString()
+  @Expose()
+  updated_at_lte?: string;
+
+  @ApiProperty({ example: '2024-02-04T22:23:07.165Z', required: false })
+  @IsOptional()
+  @IsDateString()
+  @Expose()
+  updated_at_gte?: string;
 }

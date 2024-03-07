@@ -34,6 +34,7 @@ export class UploadService {
   }
 
   async upload(
+    user: number,
     uploaded_file: Express.Multer.File,
     headers: FileHeader__Output[],
   ) {
@@ -51,6 +52,7 @@ export class UploadService {
         name,
         original_name,
         size,
+        user,
       }),
     );
 

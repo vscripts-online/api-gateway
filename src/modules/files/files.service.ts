@@ -130,14 +130,30 @@ export class FilesService {
       delete params.owner;
     }
 
-    if (params.time_gte) {
-      params['time'] = { $gte: params.time_gte };
-      delete params.time_gte;
+    if (params.created_at_gte) {
+      params['created_at'] = { gte: params.created_at_gte };
+      delete params.created_at_gte;
     }
 
-    if (params.time_lte) {
-      params['time'] = { ...params['time'], $lte: params.time_lte };
-      delete params.time_lte;
+    if (params.created_at_lte) {
+      params['created_at'] = {
+        ...params['created_at'],
+        lte: params.created_at_lte,
+      };
+      delete params.created_at_lte;
+    }
+
+    if (params.updated_at_gte) {
+      params['updated_at'] = { gte: params.updated_at_gte };
+      delete params.updated_at_gte;
+    }
+
+    if (params.updated_at_lte) {
+      params['updated_at'] = {
+        ...params['updated_at'],
+        lte: params.updated_at_lte,
+      };
+      delete params.updated_at_lte;
     }
 
     const sort_by = params.sort_by;
