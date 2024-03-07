@@ -12,12 +12,13 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { User_Id } from 'src/decorator';
-import { AuthGuard } from 'src/guard';
+import { AdminGuard, AuthGuard } from 'src/guard';
 import {
   UserChangePasswordFromForgotPasswordRequestDTO,
   UserChangePasswordRequestDTO,
   UserForgotPasswordRequestDTO,
   UserGetFilesRequestDTO,
+  UserGetUsersRequestDTO,
   UserLoginRequestDTO,
   UserRegisterRequestDTO,
 } from './user.request.dto';
@@ -97,5 +98,20 @@ export class UserController {
     });
 
     return this.userService.get_files(user_id, params);
+  }
+
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @Get('/users')
+  async get_users(@Query() _params: any) {
+    const params = plainToInstance(UserGetUsersRequestDTO, _params, {
+      excludeExtraneousValues: true,
+      exposeUnsetFields: false,
+    });
+    await validateOrReject(params).catch((e) => {
+      throw new BadRequestException(Array.isArray(e) ? e[0].constraints : e);
+    });
+
+    return this.userService.get_users(params);
   }
 }

@@ -124,3 +124,5 @@ export class UserGetFilesRequestDTO extends SearchRequestQueryParams {
   @Expose()
   slug?: string;
 }
+
+export class UserGetUsersRequestDTO extends SearchRequestQueryParams {}

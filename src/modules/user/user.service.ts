@@ -12,6 +12,7 @@ import {
   UserChangePasswordRequestDTO,
   UserForgotPasswordRequestDTO,
   UserGetFilesRequestDTO,
+  UserGetUsersRequestDTO,
   UserLoginRequestDTO,
   UserRegisterRequestDTO,
 } from './user.request.dto';
@@ -20,6 +21,7 @@ import {
   UserSessionResponseDTO,
 } from './user.response.dto';
 import { FileServiceHandlers } from 'pb/file/FileService';
+import { AccountServiceHandlers } from 'pb/account/AccountService';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -34,10 +36,12 @@ export class UserService implements OnModuleInit {
 
   private userServiceMS: GrpcService<UserServiceHandlers>;
   private fileServiceMS: GrpcService<FileServiceHandlers>;
+  private accountServiceMS: GrpcService<AccountServiceHandlers>;
 
   onModuleInit() {
     this.userServiceMS = this.user_ms_client.getService('UserService');
     this.fileServiceMS = this.file_ms_client.getService('FileService');
+    this.accountServiceMS = this.file_ms_client.getService('AccountService');
   }
 
   async register(
@@ -135,6 +139,11 @@ export class UserService implements OnModuleInit {
       sort_by: 'created_at',
     });
 
+    return response.pipe(toArray());
+  }
+
+  async get_users(params: UserGetUsersRequestDTO) {
+    const response = this.userServiceMS.GetUsers(params);
     return response.pipe(toArray());
   }
 }
