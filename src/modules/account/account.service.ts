@@ -60,4 +60,9 @@ export class AccountService implements OnModuleInit {
 
     return account;
   }
+
+  async total_storage() {
+    const storage = firstValueFrom(this.accountServiceMS.TotalStorage({}));
+    return storage;
+  }
 }

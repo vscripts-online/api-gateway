@@ -6,6 +6,7 @@ import {
   AccountLoginUrlGoogleResponseDTO,
   AccountNewAccountResponseDTO,
   AccountSyncSizeResponseDTO,
+  TotalStorageResponseDTO,
 } from './account.response.dto';
 
 export const AccountNewAccountResponseDocumentation = () =>
@@ -87,6 +88,23 @@ export const AccountDeleteAccountResponseDocumentation = () =>
             },
             'If its not successfull (empty response)': {
               value: '',
+            },
+          },
+        },
+      },
+    }),
+  );
+
+export const AccountTotalStorageResponseDocumentation = () =>
+  applyDecorators(
+    ApiOperation({ summary: 'Get total storage' }),
+    ApiResponse({
+      status: 200,
+      content: {
+        'application/json': {
+          examples: {
+            'If successful': {
+              value: classToSwaggerJson(TotalStorageResponseDTO),
             },
           },
         },

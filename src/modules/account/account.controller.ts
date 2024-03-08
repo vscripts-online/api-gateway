@@ -24,6 +24,7 @@ import {
   AccountGetAccountsResponseDocumentation,
   AccountLoginUrlGoogleResponseDocumentation,
   AccountNewAccountResponseDocumentation,
+  AccountTotalStorageResponseDocumentation,
 } from './account.swagger';
 
 @UseGuards(AuthGuard, AdminGuard)
@@ -64,5 +65,11 @@ export class AccountController {
   @AccountDeleteAccountResponseDocumentation()
   delete_account(@Param('id') id: string) {
     return this.authService.delete_account(id);
+  }
+
+  @Get('/total_storage')
+  @AccountTotalStorageResponseDocumentation()
+  total_storage() {
+    return this.authService.total_storage();
   }
 }
