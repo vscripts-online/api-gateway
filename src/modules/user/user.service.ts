@@ -8,6 +8,7 @@ import { decodeVerifyCode } from 'src/common/helper';
 import { GrpcService } from 'src/common/type';
 import { SessionService } from '../session/session.service';
 import {
+  UpdateTotalRequestDTO,
   UserChangePasswordFromForgotPasswordRequestDTO,
   UserChangePasswordRequestDTO,
   UserForgotPasswordRequestDTO,
@@ -145,5 +146,14 @@ export class UserService implements OnModuleInit {
   async get_users(params: UserGetUsersRequestDTO) {
     const response = this.userServiceMS.GetUsers(params);
     return response.pipe(toArray());
+  }
+
+  async update_total(params: UpdateTotalRequestDTO) {
+    const { size, user } = params;
+    const response = await firstValueFrom(
+      this.userServiceMS.SetTotalDrive({ size, user }),
+    );
+
+    return response.value;
   }
 }

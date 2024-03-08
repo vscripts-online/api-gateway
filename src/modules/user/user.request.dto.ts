@@ -1,13 +1,19 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptions } from '@nestjs/swagger';
+import * as bytes from 'bytes';
 import { Expose } from 'class-transformer';
 import {
   IsAscii,
   IsEmail,
+  IsNumber,
+  IsNumberString,
+  IsOptional,
   IsString,
   IsStrongPassword,
   Length,
+  Min,
 } from 'class-validator';
+import { IncreaseSizeDTO__Output } from 'pb/user/IncreaseSizeDTO';
 import { UserChangePasswordFromForgotPasswordRequestDTO__Output } from 'pb/user/UserChangePasswordFromForgotPasswordRequestDTO';
 import { UserChangePasswordRequestDTO__Output } from 'pb/user/UserChangePasswordRequestDTO';
 import { UserForgotPasswordRequestDTO__Output } from 'pb/user/UserForgotPasswordRequestDTO';
@@ -121,8 +127,22 @@ export class UserChangePasswordFromForgotPasswordRequestDTO
 
 export class UserGetFilesRequestDTO extends SearchRequestQueryParams {
   @ApiProperty({ example: 'suc0aNkQ', required: false })
+  @IsOptional()
+  @IsString()
+  @Length(1)
   @Expose()
   slug?: string;
 }
 
 export class UserGetUsersRequestDTO extends SearchRequestQueryParams {}
+
+export class UpdateTotalRequestDTO implements IncreaseSizeDTO__Output {
+  @ApiProperty({ example: bytes('1gb') + '', required: true })
+  @IsNumberString()
+  size: string;
+
+  @ApiProperty({ example: 1, required: true })
+  @IsNumber()
+  @Min(0)
+  user: number;
+}

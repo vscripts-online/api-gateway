@@ -42,7 +42,7 @@ export class UploadController {
   @Post('/')
   @ApiBearerAuth()
   @UploadResponseDocumentation()
-  @UseInterceptors(FileInterceptor('file', { dest: './upload' }))
+  @UseInterceptors(FileInterceptor('file'))
   async upload(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: any,

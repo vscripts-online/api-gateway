@@ -11,9 +11,12 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
+import { validateOrReject } from 'class-validator';
 import { User_Id } from 'src/decorator';
 import { AdminGuard, AuthGuard } from 'src/guard';
 import {
+  UpdateTotalRequestDTO,
   UserChangePasswordFromForgotPasswordRequestDTO,
   UserChangePasswordRequestDTO,
   UserForgotPasswordRequestDTO,
@@ -30,8 +33,6 @@ import {
   UserLoginResponseDocumentation,
   UserRegisterResponseDocumentation,
 } from './user.swagger';
-import { plainToInstance } from 'class-transformer';
-import { validateOrReject } from 'class-validator';
 
 @ApiTags('user')
 @Controller('/user')
@@ -113,5 +114,12 @@ export class UserController {
     });
 
     return this.userService.get_users(params);
+  }
+
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @Post('/update_total')
+  async update_total(@Body() body: UpdateTotalRequestDTO) {
+    return this.userService.update_total(body);
   }
 }
