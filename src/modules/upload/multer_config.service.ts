@@ -24,6 +24,8 @@ export class MulterConfigService implements MulterOptionsFactory {
           user_id,
         );
 
+        req['file_not_allowed'] = accept;
+
         callback(null, accept);
       },
     };

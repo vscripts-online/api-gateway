@@ -64,7 +64,21 @@ export class FilesService {
     const file = await firstValueFrom(response);
 
     if (file.loading_from_cloud_now) {
-      throw new FilesGetFileLoadingExceptionDTO();
+      const size = await this.fileService.get_file_length(file.name);
+      if (!size) {
+        throw new FilesGetFileLoadingExceptionDTO();
+      }
+
+      if (file.size === size + '') {
+        await firstValueFrom(
+          this.fileServiceMS.SetLoading({
+            _id: file._id,
+            loading_from_cloud_now: false,
+          }),
+        );
+      }
+
+      file.loading_from_cloud_now = false;
     }
 
     const file_stream = await this.fileService.get_file(
@@ -92,12 +106,12 @@ export class FilesService {
         return;
       }
 
-      const response = this.fileServiceMS.SetLoading({
-        _id: file._id,
-        loading_from_cloud_now: false,
-      });
-
-      firstValueFrom(response);
+      firstValueFrom(
+        this.fileServiceMS.SetLoading({
+          _id: file._id,
+          loading_from_cloud_now: false,
+        }),
+      );
     });
     file_stream.pipe(res);
   }

@@ -19,7 +19,10 @@ export class GrpcExceptionsFilter implements ExceptionFilter {
 
     const err =
       exception.metadata instanceof Metadata
-        ? new BadRequestException(exception['details'])
+        ? (() => {
+            console.log('GRPC ERROR HANDLED', exception);
+            return new BadRequestException(exception['details']);
+          })()
         : exception;
 
     try {

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Inject,
@@ -120,6 +121,13 @@ export class UserController {
     @Body() body: UserUpdateUserFilesRequestDTO,
   ) {
     return this.userService.update_file(user_id, file_id, body);
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Delete('/files/:id')
+  async delete_file(@User_Id() user_id: number, @Param('id') file_id: string) {
+    return this.userService.delete_file(user_id, file_id);
   }
 
   @UseGuards(AuthGuard, AdminGuard)

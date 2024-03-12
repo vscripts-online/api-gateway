@@ -26,6 +26,7 @@ import {
   AccountGetAccountsResponseDocumentation,
   AccountLoginUrlGoogleResponseDocumentation,
   AccountNewAccountResponseDocumentation,
+  AccountSyncSizeResponseDocumentation,
   AccountTotalStorageResponseDocumentation,
 } from './account.swagger';
 import { UpdateLabelDTO__Output } from 'pb/account/UpdateLabelDTO';
@@ -51,12 +52,12 @@ export class AccountController {
     return this.authService.login_url_google(body);
   }
 
-  // @HttpCode(200)
-  // @Post('/sync_size/:id')
-  // @AccountSyncSizeResponseDocumentation()
-  // sync_size(@Param('id') id: string) {
-  //   return this.authService.sync_size(id);
-  // }
+  @HttpCode(200)
+  @Post('/sync_size/:id')
+  @AccountSyncSizeResponseDocumentation()
+  sync_size(@Param('id') id: string) {
+    return this.authService.sync_size(id);
+  }
 
   @Get('/accounts')
   @AccountGetAccountsResponseDocumentation()

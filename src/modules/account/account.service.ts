@@ -38,19 +38,8 @@ export class AccountService implements OnModuleInit {
     return url;
   }
 
-  // async sync_size(id: string): Promise<any> {
-  //   const account = await this.accountRepository.get_account_by_id(id);
-  //   if (!account) {
-  //     throw new NotFoundException();
-  //   }
-
-  //   const size = await this.storageService.get_storage_sizes(account);
-  //   return this.accountRepository.sync_size(id, size);
-  // }
-
   async get_accounts(params: ISearch = DEFAULT_SEARCH) {
     const response = this.accountServiceMS.GetAccounts(params);
-
     return response.pipe(toArray());
   }
 
@@ -72,5 +61,12 @@ export class AccountService implements OnModuleInit {
       this.accountServiceMS.UpdateLabel(params),
     );
     return storage.value;
+  }
+
+  async sync_size(value: string) {
+    const result = await firstValueFrom(
+      this.accountServiceMS.SyncSize({ value }),
+    );
+    return result.value;
   }
 }

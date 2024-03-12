@@ -1,9 +1,15 @@
 import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
+import { FileServiceHandlers } from 'pb/file/FileService';
+import { QueueServiceHandlers } from 'pb/queue/QueueService';
 import { UserServiceHandlers } from 'pb/user/UserService';
 import { firstValueFrom, from, toArray } from 'rxjs';
 import { HMAC_SECRET } from 'src/common/config';
-import { FILE_MS_CLIENT, USER_MS_CLIENT } from 'src/common/config/constants';
+import {
+  FILE_MS_CLIENT,
+  QUEUE_MS_CLIENT,
+  USER_MS_CLIENT,
+} from 'src/common/config/constants';
 import { decodeVerifyCode } from 'src/common/helper';
 import { GrpcService } from 'src/common/type';
 import { SessionService } from '../session/session.service';
@@ -22,8 +28,8 @@ import {
   UserForgotPasswordInvalidQueryExceptionDTO,
   UserSessionResponseDTO,
 } from './user.response.dto';
-import { FileServiceHandlers } from 'pb/file/FileService';
-import { AccountServiceHandlers } from 'pb/account/AccountService';
+import { FilePart__Output } from 'pb/file/FilePart';
+import { FileService } from '../file/file.service';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -36,14 +42,20 @@ export class UserService implements OnModuleInit {
   @Inject(forwardRef(() => FILE_MS_CLIENT))
   private readonly file_ms_client: ClientGrpc;
 
+  @Inject(forwardRef(() => QUEUE_MS_CLIENT))
+  private readonly queue_ms_client: ClientGrpc;
+
+  @Inject(forwardRef(() => FileService))
+  private readonly fileService: FileService;
+
   private userServiceMS: GrpcService<UserServiceHandlers>;
   private fileServiceMS: GrpcService<FileServiceHandlers>;
-  private accountServiceMS: GrpcService<AccountServiceHandlers>;
+  private queueServiceMS: GrpcService<QueueServiceHandlers>;
 
   onModuleInit() {
     this.userServiceMS = this.user_ms_client.getService('UserService');
     this.fileServiceMS = this.file_ms_client.getService('FileService');
-    this.accountServiceMS = this.file_ms_client.getService('AccountService');
+    this.queueServiceMS = this.queue_ms_client.getService('QueueService');
   }
 
   async register(
@@ -173,6 +185,32 @@ export class UserService implements OnModuleInit {
     );
 
     return { ...response, parts: undefined, user: undefined };
+  }
+
+  async delete_file(user: number, _id: string) {
+    const file = await firstValueFrom(
+      this.fileServiceMS.DeleteFile({
+        _id,
+        user,
+      }),
+    );
+
+    for (const part of file.parts) {
+      await firstValueFrom(
+        this.queueServiceMS.DeleteFile(part as FilePart__Output),
+      );
+    }
+
+    const response = await firstValueFrom(
+      this.userServiceMS.IncreaseUsedSize({
+        size: 0 - parseInt(file.size as string) + '',
+        user,
+      }),
+    );
+
+    this.fileService.delete_file(file.name);
+
+    return response.value;
   }
 
   async get_users(params: UserGetUsersRequestDTO) {
