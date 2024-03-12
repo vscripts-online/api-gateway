@@ -54,7 +54,7 @@ export class AccountService implements OnModuleInit {
   }
 
   async delete_account(_id: string) {
-    const account = firstValueFrom(
+    const account = await firstValueFrom(
       this.accountServiceMS.DeleteAccount({ value: _id }),
     );
 

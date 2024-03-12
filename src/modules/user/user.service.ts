@@ -1,7 +1,7 @@
 import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { UserServiceHandlers } from 'pb/user/UserService';
-import { firstValueFrom, toArray } from 'rxjs';
+import { firstValueFrom, from, toArray } from 'rxjs';
 import { HMAC_SECRET } from 'src/common/config';
 import { FILE_MS_CLIENT, USER_MS_CLIENT } from 'src/common/config/constants';
 import { decodeVerifyCode } from 'src/common/helper';
@@ -16,6 +16,7 @@ import {
   UserGetUsersRequestDTO,
   UserLoginRequestDTO,
   UserRegisterRequestDTO,
+  UserUpdateUserFilesRequestDTO,
 } from './user.request.dto';
 import {
   UserForgotPasswordInvalidQueryExceptionDTO,
@@ -137,10 +138,41 @@ export class UserService implements OnModuleInit {
     const response = this.fileServiceMS.GetFiles({
       where: { ...params, user },
       limit: { limit, skip },
-      sort_by: 'created_at',
+      sort_by: '-created_at',
     });
 
-    return response.pipe(toArray());
+    const array = await response.pipe(toArray());
+    const data = await firstValueFrom(from(array));
+    return data.map((x) => ({ ...x, user: undefined, parts: undefined }));
+  }
+
+  async get_file(user: number, _id: string) {
+    const response = await firstValueFrom(
+      this.fileServiceMS.GetFiles({
+        where: { user, _id },
+        limit: { limit: 1, skip: 0 },
+      }),
+    );
+
+    return { ...response, parts: undefined, user: undefined };
+  }
+
+  async update_file(
+    user: number,
+    _id: string,
+    params: UserUpdateUserFilesRequestDTO,
+  ) {
+    const { file_name, headers } = params;
+    const response = await firstValueFrom(
+      this.fileServiceMS.UpdateFile({
+        _id,
+        file_name,
+        headers,
+        user,
+      }),
+    );
+
+    return { ...response, parts: undefined, user: undefined };
   }
 
   async get_users(params: UserGetUsersRequestDTO) {
@@ -154,6 +186,11 @@ export class UserService implements OnModuleInit {
       this.userServiceMS.SetTotalDrive({ size, user }),
     );
 
+    return response.value;
+  }
+
+  async count() {
+    const response = await firstValueFrom(this.userServiceMS.UsersCount({}));
     return response.value;
   }
 }

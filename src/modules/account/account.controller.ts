@@ -15,6 +15,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SearchRequestQueryParams } from 'src/common/util';
 import { AdminGuard, AuthGuard } from 'src/guard';
 import {
+  AccountDeleteAccountDTO,
   AccountUpdateGoogleRequestDTO,
   NewAccountRequestDTO,
 } from './account.request.dto';
@@ -61,10 +62,10 @@ export class AccountController {
     return this.authService.get_accounts({ ...params });
   }
 
-  @Delete('/:id')
+  @Delete('/:_id')
   @AccountDeleteAccountResponseDocumentation()
-  delete_account(@Param('id') id: string) {
-    return this.authService.delete_account(id);
+  delete_account(@Param() params: AccountDeleteAccountDTO) {
+    return this.authService.delete_account(params._id);
   }
 
   @Get('/total_storage')

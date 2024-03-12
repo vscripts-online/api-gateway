@@ -69,7 +69,12 @@ export class UploadController {
       }
     }
 
-    return this.uploadService.upload(id, file, headers);
+    return this.uploadService.upload(
+      id,
+      file,
+      headers,
+      body.file_name || file.originalname,
+    );
   }
 
   @UseGuards(PrivateGuard)

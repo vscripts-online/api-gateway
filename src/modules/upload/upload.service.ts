@@ -45,13 +45,17 @@ export class UploadService {
 
   async file_filter_guard(length: number, id: number) {
     const user = await firstValueFrom(this.userServiceMS.FindOne({ id }));
-    return user.total_drive > user.used_size + length;
+    return (
+      parseInt(user.total_drive as string) >
+      parseInt(user.used_size as string) + length
+    );
   }
 
   async upload(
     user: number,
     uploaded_file: Express.Multer.File,
     headers: FileHeader__Output[],
+    file_name: string,
   ) {
     const {
       mimetype: mime_type,
@@ -66,8 +70,9 @@ export class UploadService {
         mime_type,
         name,
         original_name,
-        size,
+        size: size + '',
         user,
+        file_name,
       }),
     );
 

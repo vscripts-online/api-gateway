@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, Length } from 'class-validator';
+import {
+  IsEnum,
+  IsMongoId,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 import { AccountUpdateGoogleRequestDTO__Output } from 'pb/account/AccountUpdateGoogleRequestDTO';
 import { NewAccountRequestDTO__Output } from 'pb/account/NewAccountRequestDTO';
 import { AccountTypes } from 'src/common/type';
@@ -22,6 +28,7 @@ export class AccountUpdateGoogleRequestDTO
     example: '65bf9bcf5f7af5dc2f037ab9',
     minLength: 10,
   })
+  @IsMongoId()
   @IsString()
   @Length(10)
   _id: string;
@@ -42,4 +49,13 @@ export class AccountUpdateGoogleRequestDTO
   @IsString()
   @Length(10)
   client_secret: string;
+}
+
+export class AccountDeleteAccountDTO {
+  @ApiProperty({
+    example: '65bf9bcf5f7af5dc2f037ab9',
+    minLength: 10,
+  })
+  @IsMongoId()
+  _id: string;
 }

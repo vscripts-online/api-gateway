@@ -1,16 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose, Transform, Type } from 'class-transformer';
+import * as bytes from 'bytes';
+import { Expose, Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
-  IsInt,
+  IsNumberString,
   IsOptional,
-  Min,
 } from 'class-validator';
-import * as bytes from 'bytes';
+import { GetFilesLimitRequestDTO__Output } from 'pb/file/GetFilesLimitRequestDTO';
+import { GetFilesRequestDTO__Output } from 'pb/file/GetFilesRequestDTO';
+import { GetFilesWhereRequestDTO__Output } from 'pb/file/GetFilesWhereRequestDTO';
 import { SearchRequestQueryParams } from 'src/common/util';
 
-export class FilesGetFilesRequestDTO extends SearchRequestQueryParams {
+export class FilesGetFilesRequestDTO
+  extends SearchRequestQueryParams
+  implements
+    GetFilesWhereRequestDTO__Output,
+    GetFilesLimitRequestDTO__Output,
+    Pick<GetFilesRequestDTO__Output, 'sort_by'>
+{
   @ApiProperty({ example: '65c2589d8fe830a23156b85e', required: false })
   @Expose()
   _id?: string;
@@ -25,19 +33,15 @@ export class FilesGetFilesRequestDTO extends SearchRequestQueryParams {
 
   @ApiProperty({ example: bytes('100mb'), required: false })
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
+  @IsNumberString({ no_symbols: true })
   @Expose()
-  size_gte?: number;
+  size_gte?: string;
 
   @ApiProperty({ example: bytes('100mb'), required: false })
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
+  @IsNumberString({ no_symbols: true })
   @Expose()
-  size_lte?: number;
+  size_lte?: string;
 
   @ApiProperty({ example: 'video/mp4', required: false })
   @Expose()

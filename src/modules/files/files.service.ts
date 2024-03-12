@@ -70,7 +70,7 @@ export class FilesService {
     const file_stream = await this.fileService.get_file(
       file.name,
       0,
-      file.size,
+      parseInt(file.size as string),
     );
 
     if (file_stream instanceof Error) {
@@ -81,11 +81,13 @@ export class FilesService {
       }
     }
 
-    file_stream.on('end', () => {
-      for (const { key, value } of file.headers || []) {
-        res.set(key, value);
-      }
+    res.set('Content-Disposition', `filename="${file.file_name}"`);
 
+    for (const { key, value } of file.headers || []) {
+      res.set(key, value);
+    }
+
+    file_stream.on('end', () => {
       if (!file.loading_from_cloud_now) {
         return;
       }
@@ -160,7 +162,7 @@ export class FilesService {
     delete params.sort_by;
 
     const response = this.fileServiceMS.GetFiles({
-      where: params,
+      where: { ...params },
       limit: { limit, skip },
       sort_by,
     });

@@ -5,7 +5,9 @@ import {
   Get,
   HttpCode,
   Inject,
+  Param,
   Post,
+  Put,
   Query,
   UseGuards,
   forwardRef,
@@ -24,6 +26,7 @@ import {
   UserGetUsersRequestDTO,
   UserLoginRequestDTO,
   UserRegisterRequestDTO,
+  UserUpdateUserFilesRequestDTO,
 } from './user.request.dto';
 import { UserService } from './user.service';
 import {
@@ -101,6 +104,24 @@ export class UserController {
     return this.userService.get_files(user_id, params);
   }
 
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Get('/files/:id')
+  async get_file(@User_Id() user_id: number, @Param('id') file_id: string) {
+    return this.userService.get_file(user_id, file_id);
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Put('/files/:id')
+  async update_file(
+    @User_Id() user_id: number,
+    @Param('id') file_id: string,
+    @Body() body: UserUpdateUserFilesRequestDTO,
+  ) {
+    return this.userService.update_file(user_id, file_id, body);
+  }
+
   @UseGuards(AuthGuard, AdminGuard)
   @ApiBearerAuth()
   @Get('/users')
@@ -121,5 +142,12 @@ export class UserController {
   @Post('/update_total')
   async update_total(@Body() body: UpdateTotalRequestDTO) {
     return this.userService.update_total(body);
+  }
+
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @Get('/count')
+  async count() {
+    return this.userService.count();
   }
 }
