@@ -1,6 +1,7 @@
 import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { AccountServiceHandlers } from 'pb/account/AccountService';
+import { UpdateLabelDTO__Output } from 'pb/account/UpdateLabelDTO';
 import { firstValueFrom, toArray } from 'rxjs';
 import { FILE_MS_CLIENT } from 'src/common/config/constants';
 import { GrpcService, ISearch } from 'src/common/type';
@@ -64,5 +65,12 @@ export class AccountService implements OnModuleInit {
   async total_storage() {
     const storage = firstValueFrom(this.accountServiceMS.TotalStorage({}));
     return storage;
+  }
+
+  async update_label(params: UpdateLabelDTO__Output) {
+    const storage = await firstValueFrom(
+      this.accountServiceMS.UpdateLabel(params),
+    );
+    return storage.value;
   }
 }

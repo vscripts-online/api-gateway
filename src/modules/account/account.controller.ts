@@ -7,6 +7,7 @@ import {
   Inject,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
   forwardRef,
@@ -27,6 +28,7 @@ import {
   AccountNewAccountResponseDocumentation,
   AccountTotalStorageResponseDocumentation,
 } from './account.swagger';
+import { UpdateLabelDTO__Output } from 'pb/account/UpdateLabelDTO';
 
 @UseGuards(AuthGuard, AdminGuard)
 @ApiBearerAuth()
@@ -72,5 +74,10 @@ export class AccountController {
   @AccountTotalStorageResponseDocumentation()
   total_storage() {
     return this.authService.total_storage();
+  }
+
+  @Put('/update_label')
+  update_label(@Body() body: UpdateLabelDTO__Output) {
+    return this.authService.update_label(body);
   }
 }
