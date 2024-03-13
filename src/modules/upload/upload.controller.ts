@@ -29,6 +29,7 @@ import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { PrivateGuard } from 'src/guard/private.guard';
 import { UploadResponseDocumentation } from './upload.swagger';
 import { UploadFileMissingExceptionDTO } from './upload.response.dto';
+import { File_Not_Allowed, User_Id } from 'src/decorator';
 
 @UseGuards(AuthGuard)
 @ApiTags('upload')
@@ -37,11 +38,23 @@ export class UploadController {
   @Inject(forwardRef(() => UploadService))
   private readonly uploadService: UploadService;
 
+  @UseGuards(AuthGuard)
   @Post('/')
   @ApiBearerAuth()
   @UploadResponseDocumentation()
-  @UseInterceptors(FileInterceptor('file', { dest: './upload' }))
-  async upload(@UploadedFile() file: Express.Multer.File, @Body() body: any) {
+  @UseInterceptors(FileInterceptor('file'))
+  async upload(
+    @File_Not_Allowed() allowed: boolean,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+    @User_Id() id: number,
+  ) {
+    if (!allowed) {
+      throw new BadRequestException(
+        'You have reached your storage limit. Please upload a smaller file.',
+      );
+    }
+
     if (!file) {
       throw new UploadFileMissingExceptionDTO();
     }
@@ -63,7 +76,12 @@ export class UploadController {
       }
     }
 
-    return this.uploadService.upload(file, headers);
+    return this.uploadService.upload(
+      id,
+      file,
+      headers,
+      body.file_name || file.originalname,
+    );
   }
 
   @UseGuards(PrivateGuard)
@@ -78,8 +96,12 @@ export class UploadController {
     start = Number(start);
     end = Number(end);
 
-    if (end < 0 || end > bytes('100 mb')) {
-      throw new BadRequestException('End must be between 0 and 100mb');
+    const between = end - start;
+
+    if (between < 0 || between > bytes('100 mb') - 1) {
+      throw new BadRequestException(
+        'You cannot request more than 100 megabytes of data',
+      );
     }
 
     if (start < 0 || start > end) {

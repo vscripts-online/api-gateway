@@ -64,13 +64,27 @@ export class FilesService {
     const file = await firstValueFrom(response);
 
     if (file.loading_from_cloud_now) {
-      throw new FilesGetFileLoadingExceptionDTO();
+      const size = await this.fileService.get_file_length(file.name);
+      if (!size) {
+        throw new FilesGetFileLoadingExceptionDTO();
+      }
+
+      if (file.size === size + '') {
+        await firstValueFrom(
+          this.fileServiceMS.SetLoading({
+            _id: file._id,
+            loading_from_cloud_now: false,
+          }),
+        );
+      }
+
+      file.loading_from_cloud_now = false;
     }
 
     const file_stream = await this.fileService.get_file(
       file.name,
       0,
-      file.size,
+      parseInt(file.size as string),
     );
 
     if (file_stream instanceof Error) {
@@ -81,21 +95,23 @@ export class FilesService {
       }
     }
 
-    file_stream.on('end', () => {
-      for (const { key, value } of file.headers || []) {
-        res.set(key, value);
-      }
+    res.set('Content-Disposition', `filename="${file.file_name}"`);
 
+    for (const { key, value } of file.headers || []) {
+      res.set(key, value);
+    }
+
+    file_stream.on('end', () => {
       if (!file.loading_from_cloud_now) {
         return;
       }
 
-      const response = this.fileServiceMS.SetLoading({
-        _id: file._id,
-        loading_from_cloud_now: false,
-      });
-
-      firstValueFrom(response);
+      firstValueFrom(
+        this.fileServiceMS.SetLoading({
+          _id: file._id,
+          loading_from_cloud_now: false,
+        }),
+      );
     });
     file_stream.pipe(res);
   }
@@ -130,21 +146,37 @@ export class FilesService {
       delete params.owner;
     }
 
-    if (params.time_gte) {
-      params['time'] = { $gte: params.time_gte };
-      delete params.time_gte;
+    if (params.created_at_gte) {
+      params['created_at'] = { gte: params.created_at_gte };
+      delete params.created_at_gte;
     }
 
-    if (params.time_lte) {
-      params['time'] = { ...params['time'], $lte: params.time_lte };
-      delete params.time_lte;
+    if (params.created_at_lte) {
+      params['created_at'] = {
+        ...params['created_at'],
+        lte: params.created_at_lte,
+      };
+      delete params.created_at_lte;
+    }
+
+    if (params.updated_at_gte) {
+      params['updated_at'] = { gte: params.updated_at_gte };
+      delete params.updated_at_gte;
+    }
+
+    if (params.updated_at_lte) {
+      params['updated_at'] = {
+        ...params['updated_at'],
+        lte: params.updated_at_lte,
+      };
+      delete params.updated_at_lte;
     }
 
     const sort_by = params.sort_by;
     delete params.sort_by;
 
     const response = this.fileServiceMS.GetFiles({
-      where: params,
+      where: { ...params },
       limit: { limit, skip },
       sort_by,
     });

@@ -1,17 +1,28 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptions } from '@nestjs/swagger';
+import * as bytes from 'bytes';
+import { Expose, Type } from 'class-transformer';
 import {
   IsAscii,
   IsEmail,
+  IsNumber,
+  IsNumberString,
+  IsOptional,
   IsString,
   IsStrongPassword,
   Length,
+  Min,
+  ValidateNested,
 } from 'class-validator';
+import { UpdateFileRequestDTO__Output } from 'pb/file/UpdateFileRequestDTO';
+import { IncreaseSizeDTO__Output } from 'pb/user/IncreaseSizeDTO';
 import { UserChangePasswordFromForgotPasswordRequestDTO__Output } from 'pb/user/UserChangePasswordFromForgotPasswordRequestDTO';
 import { UserChangePasswordRequestDTO__Output } from 'pb/user/UserChangePasswordRequestDTO';
 import { UserForgotPasswordRequestDTO__Output } from 'pb/user/UserForgotPasswordRequestDTO';
 import { UserRegisterRequestDTO__Output } from 'pb/user/UserRegisterRequestDTO';
 import { IsNotEqualWith } from 'src/common/helper';
+import { SearchRequestQueryParams } from 'src/common/util';
+import { UploadBodyRequestHeadersDTO } from '../upload/upload.request.dto';
 
 export const ApiPropertyPassword = (options: ApiPropertyOptions = {}) => {
   const default_options = {
@@ -115,4 +126,48 @@ export class UserChangePasswordFromForgotPasswordRequestDTO
   @IsAscii()
   @Length(8, 40)
   password: string;
+}
+
+export class UserGetFilesRequestDTO extends SearchRequestQueryParams {
+  @ApiProperty({ example: 'suc0aNkQ', required: false })
+  @IsOptional()
+  @IsString()
+  @Length(1)
+  @Expose()
+  slug?: string;
+}
+
+export class UserGetUsersRequestDTO extends SearchRequestQueryParams {
+  @ApiProperty({ example: '_id', required: true })
+  @IsString()
+  @Expose()
+  sort_by: string;
+}
+
+export class UpdateTotalRequestDTO implements IncreaseSizeDTO__Output {
+  @ApiProperty({ example: bytes('1gb') + '', required: true })
+  @IsNumberString()
+  size: string;
+
+  @ApiProperty({ example: 1, required: true })
+  @IsNumber()
+  @Min(0)
+  user: number;
+}
+
+export class UserUpdateUserFilesRequestDTO
+  implements Omit<UpdateFileRequestDTO__Output, 'user' | '_id'>
+{
+  @ApiProperty({
+    type: UploadBodyRequestHeadersDTO,
+    isArray: true,
+    required: false,
+  })
+  @ValidateNested({ each: true })
+  @Type(() => UploadBodyRequestHeadersDTO)
+  headers: UploadBodyRequestHeadersDTO[];
+
+  @ApiProperty({ example: 'file.mp4', required: true })
+  @IsString()
+  file_name: string;
 }

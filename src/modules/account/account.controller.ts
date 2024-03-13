@@ -7,6 +7,7 @@ import {
   Inject,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
   forwardRef,
@@ -15,6 +16,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SearchRequestQueryParams } from 'src/common/util';
 import { AdminGuard, AuthGuard } from 'src/guard';
 import {
+  AccountDeleteAccountDTO,
   AccountUpdateGoogleRequestDTO,
   NewAccountRequestDTO,
 } from './account.request.dto';
@@ -24,7 +26,10 @@ import {
   AccountGetAccountsResponseDocumentation,
   AccountLoginUrlGoogleResponseDocumentation,
   AccountNewAccountResponseDocumentation,
+  AccountSyncSizeResponseDocumentation,
+  AccountTotalStorageResponseDocumentation,
 } from './account.swagger';
+import { UpdateLabelDTO__Output } from 'pb/account/UpdateLabelDTO';
 
 @UseGuards(AuthGuard, AdminGuard)
 @ApiBearerAuth()
@@ -47,12 +52,12 @@ export class AccountController {
     return this.authService.login_url_google(body);
   }
 
-  // @HttpCode(200)
-  // @Post('/sync_size/:id')
-  // @AccountSyncSizeResponseDocumentation()
-  // sync_size(@Param('id') id: string) {
-  //   return this.authService.sync_size(id);
-  // }
+  @HttpCode(200)
+  @Post('/sync_size/:id')
+  @AccountSyncSizeResponseDocumentation()
+  sync_size(@Param('id') id: string) {
+    return this.authService.sync_size(id);
+  }
 
   @Get('/accounts')
   @AccountGetAccountsResponseDocumentation()
@@ -60,9 +65,20 @@ export class AccountController {
     return this.authService.get_accounts({ ...params });
   }
 
-  @Delete('/:id')
+  @Delete('/:_id')
   @AccountDeleteAccountResponseDocumentation()
-  delete_account(@Param('id') id: string) {
-    return this.authService.delete_account(id);
+  delete_account(@Param() params: AccountDeleteAccountDTO) {
+    return this.authService.delete_account(params._id);
+  }
+
+  @Get('/total_storage')
+  @AccountTotalStorageResponseDocumentation()
+  total_storage() {
+    return this.authService.total_storage();
+  }
+
+  @Put('/update_label')
+  update_label(@Body() body: UpdateLabelDTO__Output) {
+    return this.authService.update_label(body);
   }
 }

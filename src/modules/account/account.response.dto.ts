@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { AccountTypes } from 'src/common/type';
 import * as bytes from 'bytes';
 import { CustomBadRequestException } from 'src/common/util';
+import { TotalStorageResponse } from 'pb/account/TotalStorageResponse';
 
 export class AccountNewAccountResponseDTO {
   @ApiProperty({ example: '65ce68bd88c3b9818dbbd690' })
@@ -46,4 +47,15 @@ export class AccountSyncSizeResponseDTO extends AccountNewAccountResponseDTO {
 
   @ApiProperty({ example: bytes('15 gb') })
   available_size: number;
+}
+
+export class TotalStorageResponseDTO implements TotalStorageResponse {
+  @ApiProperty({ example: bytes('14 gb') + '' })
+  available_storage: string;
+
+  @ApiProperty({ example: bytes('15 gb') + '' })
+  total_storage: string;
+
+  @ApiProperty({ example: 1 })
+  total_accounts: number;
 }

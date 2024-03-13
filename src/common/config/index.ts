@@ -31,6 +31,7 @@ const QUEUE_PROTO_PATH = path.join(process.cwd(), 'proto/queue.proto');
 const loader: GrpcOptions['options']['loader'] = {
   keepCase: true,
   enums: String,
+  longs: String,
 };
 
 export const SESSION_MS_GRPC_OPTIONS: ClientOptions = {

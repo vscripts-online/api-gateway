@@ -92,22 +92,21 @@ If the code is created a second time within 1 minute, it returns true without do
 
 If the last e-mail sending was done within 1 minute to 5 minutes, it saves the time of code creation in the user data and sends the code again without changing the code.
 
-## generateEncodedVerifyCode
+## Ubuntu server configuration
 
-This function creates an encoded query for forgotten_password, which includes the specified code and user_id for the user. It does this like this:
+Since ufw blocks docker communication, containers cannot communicate with each other. That's why [ufw-docker](https://github.com/chaifeng/ufw-docker) should be used.
 
-Let's assume that user_id is `65c4efa0b3da8a1d8773f87d` (mongo ObjectID) and code is 123456.
+Update the relevant file [here](https://github.com/chaifeng/ufw-docker?tab=readme-ov-file#solving-ufw-and-docker-issues).
 
-First it gets the time using the first 8 characters of user_id: `1707405216`, then it adds the code on top: `1707528672` and converts it back to hex string: `65c6d1e0`. Replaces this value with the first 8 digits of user_id, new value: `65c6d1e0b3da8a1d8773f87d`
+You do not need to do the `ufw route allow proto tcp from any to any port 80` part.
 
-User_id and code information was stored in this new value. All that needs to be done is to email this value to the user, but when sending this value to the user, it should be checked whether it is actually sent by this authority by adding a signature. Since the data to be sent to the user is desired to be short, a seed is created using the xxhash32 algorithm and a signature is created with this seed.
+Get the id of the `cdn_cdn` network with the `docker network ls` command.
 
-seed created: `13694774`
-created signature: `1944969124`
+Get the subnet used by the network with the `docker inspect [id]` command. example: 172.24.0.0/16
 
-Finally, `65c6d1e0b3da8a1d8773f87d` and the hex string of the signature (`73eddfa4`) are combined and converted to base64url (`ZcbR4LPaih2Hc_h9c-3fpA`) and the 36 radix base value of the code is added to the end of the resulting value (`2n9c`).
+Run `ufw allow from 172.24.0.0/16`
 
-result: `ZcbR4LPaih2Hc_h9c-3fpA2n9c`
+Ufw will now allow docker communication.
 
 ## Referances
 
@@ -116,3 +115,5 @@ Adding multiple swagger example responses with one status code -> [source](https
 Using 'applyDecorator' function to reduce swagger documentation code crowd -> [source](https://aalonso.dev/blog/how-to-generate-generics-dtos-with-nestjsswagger-422g)
 
 Redis stack authentication [source](https://stackoverflow.com/a/76482901)
+
+Allow ufw docker network [source](https://superuser.com/a/1709175)
