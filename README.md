@@ -18,8 +18,8 @@ QUEUE_MS_URI=host.docker.internal:20001
 USER_MS_URI=host.docker.internal:20002
 FILE_MS_URI=host.docker.internal:20003
 
-HMAC_SECRET=rmR6aiKelvDnIqIp2rUtwsBmD8ZbtjPrg4i1dJLYoDetXPbX4Vh0O8kChcD6OTfZXLh_NjOHU7ob-lA40CKudbDwXWEH5BZ7_saixeS3foxDuzvU3uskS84JdU5vmzI61TGZso_Wd6OIQH5H8gg7HFJmqbMlqCIuavqjqC-Li7M
-JWT_SECRET=wrL3EZegwtbbKXQKrlq7MW0HD_d3y7bn_wNm3O6xHSfF2ywB5cPM6fkJSkSufSXsOwFr_irtRZmqTJrKIwjGZvExYVy_ewBeaJe9S2h505sYsHwl0maNEngAdEUm4D9mY7b6j3ipjtrj7wsd8BwpKrpPcoHXTjeQLMcYBdbVqtY
+HMAC_SECRET=strong secret
+JWT_SECRET=strong secret
 ```
 
 ## Running the app
@@ -61,6 +61,14 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
+
+## API Documents
+
+Swagger Documentation can be found at /api route after servfer starts up.
+
+## Configure Google Cloud Platform
+
+[Follow instructions to step seven](https://blog.tericcabrel.com/upload-file-to-google-drive-with-nodejs/)
 
 ## classToSwaggerJson
 
