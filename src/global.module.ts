@@ -12,6 +12,7 @@ import {
   SESSION_MS_GRPC_OPTIONS,
   USER_MS_GRPC_OPTIONS,
 } from './common/config';
+import { AuthModule } from './modules/auth/auth.module';
 
 const microservices = [
   ClientsModule.register([
@@ -42,7 +43,7 @@ const microservices = [
 
 @Global()
 @Module({
-  imports: microservices,
-  exports: microservices,
+  imports: [...microservices, AuthModule],
+  exports: [...microservices, AuthModule],
 })
 export class GlobalModule {}

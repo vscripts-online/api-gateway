@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import { config } from 'dotenv';
+import * as cookieParser from 'cookie-parser';
 config();
 
 process.on('uncaughtException', (err) => {
@@ -17,6 +18,8 @@ import { GrpcExceptionsFilter } from './filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
+
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const httpAdapter = app.get(HttpAdapterHost);
