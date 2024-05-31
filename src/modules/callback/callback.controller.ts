@@ -31,17 +31,12 @@ export class CallbackController implements OnModuleInit {
     @Query('state') state: string,
     @Query('code') code: string,
   ) {
-    const { _id, client_id, client_secret } = JSON.parse(
+    const { _id } = JSON.parse(
       decodeURIComponent(state),
     ) as CallbackGoogleRequestDTO__Output;
 
     const account = await firstValueFrom(
-      this.accountService.CallbackGoogle({
-        _id,
-        client_id,
-        client_secret,
-        code,
-      }),
+      this.accountService.CallbackGoogle({ _id, code }),
     );
 
     if (account) {

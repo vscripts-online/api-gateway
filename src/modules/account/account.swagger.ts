@@ -77,7 +77,7 @@ export const AccountGetAccountsResponseDocumentation = () =>
 
 export const AccountDeleteAccountResponseDocumentation = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Get accounts' }),
+    ApiOperation({ summary: 'Delete account' }),
     ApiResponse({
       status: 200,
       content: {

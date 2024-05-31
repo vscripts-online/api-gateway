@@ -36,7 +36,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   app.enableShutdownHooks();
-  app.enableCors({ origin: '*' });
+  app.enableCors({ origin: true, credentials: true });
 
   await app.listen(parseInt(PORT), '0.0.0.0');
   fs.writeFileSync('document.json', JSON.stringify(document, null, 2));

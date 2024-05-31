@@ -43,6 +43,14 @@ export class AccountService implements OnModuleInit {
     return response.pipe(toArray());
   }
 
+  async get_account(_id: string) {
+    const account = await firstValueFrom(
+      this.accountServiceMS.GetAccount({ value: _id }),
+    );
+
+    return account;
+  }
+
   async delete_account(_id: string) {
     const account = await firstValueFrom(
       this.accountServiceMS.DeleteAccount({ value: _id }),

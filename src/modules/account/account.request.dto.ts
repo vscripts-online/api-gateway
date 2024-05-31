@@ -19,19 +19,6 @@ export class NewAccountRequestDTO implements NewAccountRequestDTO__Output {
   @IsOptional()
   @IsString()
   label: string;
-}
-
-export class AccountUpdateGoogleRequestDTO
-  implements AccountUpdateGoogleRequestDTO__Output
-{
-  @ApiProperty({
-    example: '65bf9bcf5f7af5dc2f037ab9',
-    minLength: 10,
-  })
-  @IsMongoId()
-  @IsString()
-  @Length(10)
-  _id: string;
 
   @ApiProperty({
     example:
@@ -51,7 +38,7 @@ export class AccountUpdateGoogleRequestDTO
   client_secret: string;
 }
 
-export class AccountDeleteAccountDTO {
+export class ObjectIdDTO {
   @ApiProperty({
     example: '65bf9bcf5f7af5dc2f037ab9',
     minLength: 10,
@@ -59,3 +46,11 @@ export class AccountDeleteAccountDTO {
   @IsMongoId()
   _id: string;
 }
+
+export class AccountUpdateGoogleRequestDTO
+  extends ObjectIdDTO
+  implements AccountUpdateGoogleRequestDTO__Output {}
+
+export class AccountDeleteAccountDTO extends ObjectIdDTO {}
+
+export class AccountGetAccountDTO extends ObjectIdDTO {}
