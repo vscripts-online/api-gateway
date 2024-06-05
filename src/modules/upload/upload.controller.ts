@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Inject,
   Param,
@@ -14,29 +15,38 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import * as bytes from 'bytes';
 import { plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import type { Response } from 'express';
 import * as fs from 'node:fs';
+import { AuthUser, File_Not_Allowed } from 'src/decorator';
 import { AuthGuard } from 'src/guard';
+import { PrivateGuard } from 'src/guard/private.guard';
+import { IAuthUser } from '../auth/auth.service';
 import {
+  UploadAvailableDTO,
   UploadBodyRequestDTO,
   UploadGetFileQueryDTO,
 } from './upload.request.dto';
-import { UploadService } from './upload.service';
-import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
-import { PrivateGuard } from 'src/guard/private.guard';
-import { UploadResponseDocumentation } from './upload.swagger';
 import { UploadFileMissingExceptionDTO } from './upload.response.dto';
-import { File_Not_Allowed, User_Id } from 'src/decorator';
+import { UploadService } from './upload.service';
+import { UploadResponseDocumentation } from './upload.swagger';
+import { No_Available_Storage } from 'src/decorator/no_available_storage';
 
-@UseGuards(AuthGuard)
 @ApiTags('upload')
 @Controller('/upload')
 export class UploadController {
   @Inject(forwardRef(() => UploadService))
   private readonly uploadService: UploadService;
+
+  @UseGuards(AuthGuard)
+  @Post('/available')
+  @ApiBearerAuth()
+  async available(@Body() body: UploadAvailableDTO) {
+    return this.uploadService.total_file_guard(body.size);
+  }
 
   @UseGuards(AuthGuard)
   @Post('/')
@@ -45,9 +55,10 @@ export class UploadController {
   @UseInterceptors(FileInterceptor('file'))
   async upload(
     @File_Not_Allowed() allowed: boolean,
+    @No_Available_Storage() no_available_storage: boolean,
     @UploadedFile() file: Express.Multer.File,
     @Body() body: any,
-    @User_Id() id: number,
+    @AuthUser() user: IAuthUser,
   ) {
     if (!allowed) {
       throw new BadRequestException(
@@ -55,9 +66,17 @@ export class UploadController {
       );
     }
 
+    if (!no_available_storage) {
+      throw new BadRequestException(
+        'There is no space in storage. Try again later',
+      );
+    }
+
     if (!file) {
       throw new UploadFileMissingExceptionDTO();
     }
+
+    console.log('NEW UPLOAD');
 
     let headers = [];
 
@@ -77,7 +96,7 @@ export class UploadController {
     }
 
     return this.uploadService.upload(
-      id,
+      user,
       file,
       headers,
       body.file_name || file.originalname,
@@ -86,10 +105,10 @@ export class UploadController {
 
   @UseGuards(PrivateGuard)
   @ApiExcludeEndpoint()
-  @Get('/file/:id')
+  @Get('/file/:_id')
   async get_file(
     @Res() res: Response,
-    @Param('id') id: string,
+    @Param('_id') _id: string,
     @Query() query: UploadGetFileQueryDTO,
   ) {
     let { start, end } = query;
@@ -110,6 +129,13 @@ export class UploadController {
       );
     }
 
-    return this.uploadService.get_file(res, id, start, end);
+    return this.uploadService.get_file(res, _id, start, end);
+  }
+
+  @UseGuards(PrivateGuard)
+  @ApiExcludeEndpoint()
+  @Delete('/file/:_id')
+  async del_file(@Param('_id') _id: string) {
+    return this.uploadService.del_file(_id);
   }
 }

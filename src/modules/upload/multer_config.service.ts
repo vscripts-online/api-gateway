@@ -18,13 +18,12 @@ export class MulterConfigService implements MulterOptionsFactory {
       dest: './upload',
       async fileFilter(req: Request, file, callback) {
         const length = Number(req.headers['content-length']);
-        const user_id = req['_id'];
-        const accept = await self.uploadService.file_filter_guard(
-          length,
-          user_id,
-        );
+        const user = req['user'];
+        const accept = await self.uploadService.file_filter_guard(length, user);
+        const available = await self.uploadService.total_file_guard(length);
 
         req['file_not_allowed'] = accept;
+        req['no_available_storage'] = available;
 
         callback(null, accept);
       },

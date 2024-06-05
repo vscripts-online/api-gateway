@@ -18,19 +18,18 @@ import { AdminGuard, AuthGuard } from 'src/guard';
 import {
   AccountDeleteAccountDTO,
   AccountGetAccountDTO,
-  AccountUpdateGoogleRequestDTO,
+  AccountUpdateLabelDTO,
   NewAccountRequestDTO,
+  ObjectIdDTO,
 } from './account.request.dto';
 import { AccountService } from './account.service';
 import {
   AccountDeleteAccountResponseDocumentation,
   AccountGetAccountsResponseDocumentation,
-  AccountLoginUrlGoogleResponseDocumentation,
   AccountNewAccountResponseDocumentation,
   AccountSyncSizeResponseDocumentation,
   AccountTotalStorageResponseDocumentation,
 } from './account.swagger';
-import { UpdateLabelDTO__Output } from 'pb/account/UpdateLabelDTO';
 
 @UseGuards(AuthGuard, AdminGuard)
 @ApiBearerAuth()
@@ -44,13 +43,6 @@ export class AccountController {
   @AccountNewAccountResponseDocumentation()
   new_account(@Body() body: NewAccountRequestDTO) {
     return this.accountService.new_account(body);
-  }
-
-  @HttpCode(200)
-  @Post('/login_url_google')
-  @AccountLoginUrlGoogleResponseDocumentation()
-  login_url_google(@Body() body: AccountUpdateGoogleRequestDTO) {
-    return this.accountService.login_url_google(body);
   }
 
   @HttpCode(200)
@@ -84,8 +76,14 @@ export class AccountController {
     return this.accountService.total_storage();
   }
 
-  @Put('/update_label')
-  update_label(@Body() body: UpdateLabelDTO__Output) {
-    return this.accountService.update_label(body);
+  @Put('/:_id')
+  update_label(
+    @Body() body: AccountUpdateLabelDTO,
+    @Param() params: ObjectIdDTO,
+  ) {
+    return this.accountService.update_label({
+      _id: params._id,
+      label: body.label,
+    });
   }
 }

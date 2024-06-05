@@ -15,7 +15,7 @@ import { AdminGuard, AuthGuard } from 'src/guard';
 import { FilesGetFilesRequestDTO } from './files.request.dto';
 import { FilesService } from './files.service';
 import {
-  FilesGetFileResponseDocumentation,
+  // FilesGetFileResponseDocumentation,
   FilesGetFilesResponseDocumentation,
 } from './files.swagger';
 import { plainToInstance } from 'class-transformer';
@@ -43,9 +43,14 @@ export class FilesController {
     return this.filesService.get_files(params);
   }
 
-  @Get('/:slug')
-  @FilesGetFileResponseDocumentation()
-  get_file(@Res() res: Response, @Param('slug') slug: string) {
-    return this.filesService.get_file(res, slug);
+  @UseGuards(AuthGuard, AdminGuard)
+  @Get('/file/:_id')
+  get_file_by_id(@Param('_id') _id: string) {
+    return this.filesService.get_file_by_id(_id);
+  }
+
+  @Get('/:_id')
+  get_file(@Res() res: Response, @Param('_id') _id: string) {
+    return this.filesService.get_file(res, _id);
   }
 }

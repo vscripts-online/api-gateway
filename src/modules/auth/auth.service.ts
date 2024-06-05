@@ -1,31 +1,32 @@
 import { Injectable } from '@nestjs/common';
-import * as bytes from 'bytes';
 import {
   AUTH_CLIENT_ID,
   AUTH_CLIENT_SECRET,
   AUTH_HOST_URI,
 } from 'src/common/config';
 
-interface IUserMetadata {
+export interface IUserMetadata {
   admin?: boolean;
   total?: number;
   used?: number;
 }
 
-interface IGetMeResponse {
-  status: boolean;
-  user?: {
-    avatar: string;
-    email: string;
-    has_password: boolean;
-    id: number;
-    name: string;
-    role: 'USER' | 'ADMIN';
-    metadata?: IUserMetadata;
-  };
+export interface IAuthUser {
+  avatar: string;
+  email: string;
+  has_password: boolean;
+  id: number;
+  name: string;
+  role: 'USER' | 'ADMIN';
+  metadata?: IUserMetadata;
 }
 
-interface ISetMetadataFailResponse {
+interface IGetMeResponse {
+  status: boolean;
+  user?: IAuthUser;
+}
+
+interface IFailResponse {
   status: false;
   message: string;
 }
@@ -39,9 +40,21 @@ interface ISetMetadataSuccessResponse {
   };
 }
 
-type SetMetadataResponse =
-  | ISetMetadataFailResponse
-  | ISetMetadataSuccessResponse;
+export interface IGetUsersUser {
+  metadata: IUserMetadata;
+  user: Pick<IAuthUser, 'avatar' | 'email' | 'id' | 'name'>;
+  createdAt: string;
+}
+
+export interface IGetUsersResponse {
+  users: IGetUsersUser[];
+}
+
+export interface IGetUsersUserResponse {
+  user: IGetUsersUser | null;
+}
+
+type StatusResponse<T> = IFailResponse | T;
 
 @Injectable()
 export class AuthService {
@@ -64,26 +77,56 @@ export class AuthService {
     return data.user;
   }
 
-  async setMetadata(id: number) {
+  async setMetadata(id: number, metadata: IUserMetadata, update = false) {
     const url = new URL(AUTH_HOST_URI + '/api/app/user');
     url.searchParams.set('client_id', AUTH_CLIENT_ID);
     url.searchParams.set('client_secret', AUTH_CLIENT_SECRET);
     url.searchParams.set('user', id + '');
 
     const response = await fetch(url, {
-      method: 'POST',
+      method: update ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ total: bytes('500mb'), used: 0 } as IUserMetadata),
+      body: JSON.stringify(metadata),
     });
 
-    const data: SetMetadataResponse = await response.json();
+    const data: StatusResponse<ISetMetadataSuccessResponse> =
+      await response.json();
 
-    if (!(data as ISetMetadataFailResponse).status) {
+    if (!(data as IFailResponse).status) {
       return false;
     }
 
     return (data as ISetMetadataSuccessResponse).user.metadata;
+  }
+
+  async getUsers() {
+    const url = new URL(AUTH_HOST_URI + '/api/app/user');
+    url.searchParams.set('client_id', AUTH_CLIENT_ID);
+    url.searchParams.set('client_secret', AUTH_CLIENT_SECRET);
+
+    const response = await fetch(url);
+
+    const data = (await response.json()) as any;
+
+    if (!(data as IFailResponse).status) {
+      return [];
+    }
+
+    return (data as IGetUsersResponse).users;
+  }
+
+  async getUser(userId: number) {
+    const url = new URL(AUTH_HOST_URI + '/api/app/user');
+    url.searchParams.set('client_id', AUTH_CLIENT_ID);
+    url.searchParams.set('client_secret', AUTH_CLIENT_SECRET);
+    url.searchParams.set('user', userId + '');
+
+    const response = await fetch(url);
+
+    const data = (await response.json()) as any;
+
+    return (data as IGetUsersUserResponse).user;
   }
 }

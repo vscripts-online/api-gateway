@@ -10,15 +10,6 @@ export class FilesGetFileNotFoundExceptionDTO extends CustomBadRequestException 
   }
 }
 
-export class FilesGetFileLoadingExceptionDTO extends CustomBadRequestException {
-  @ApiProperty({ example: 'File is loading' })
-  message: string;
-
-  constructor() {
-    super('File is loading');
-  }
-}
-
 export class FilesGetFilesResponseDTO {
   @ApiProperty({ example: '65ce68bd88c3b9818dbbd690' })
   _id: string;

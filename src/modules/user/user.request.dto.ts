@@ -3,24 +3,13 @@ import { ApiProperty, ApiPropertyOptions } from '@nestjs/swagger';
 import * as bytes from 'bytes';
 import { Expose, Type } from 'class-transformer';
 import {
-  IsAscii,
-  IsEmail,
   IsNumber,
-  IsNumberString,
   IsOptional,
   IsString,
-  IsStrongPassword,
   Length,
-  Min,
   ValidateNested,
 } from 'class-validator';
 import { UpdateFileRequestDTO__Output } from 'pb/file/UpdateFileRequestDTO';
-import { IncreaseSizeDTO__Output } from 'pb/user/IncreaseSizeDTO';
-import { UserChangePasswordFromForgotPasswordRequestDTO__Output } from 'pb/user/UserChangePasswordFromForgotPasswordRequestDTO';
-import { UserChangePasswordRequestDTO__Output } from 'pb/user/UserChangePasswordRequestDTO';
-import { UserForgotPasswordRequestDTO__Output } from 'pb/user/UserForgotPasswordRequestDTO';
-import { UserRegisterRequestDTO__Output } from 'pb/user/UserRegisterRequestDTO';
-import { IsNotEqualWith } from 'src/common/helper';
 import { SearchRequestQueryParams } from 'src/common/util';
 import { UploadBodyRequestHeadersDTO } from '../upload/upload.request.dto';
 
@@ -44,90 +33,6 @@ export const ApiPropertyEmail = (options: ApiPropertyOptions = {}) => {
   return applyDecorators(ApiProperty({ ...default_options, ...options }));
 };
 
-export class UserLoginRequestDTO implements UserRegisterRequestDTO__Output {
-  @ApiPropertyEmail()
-  @IsEmail()
-  @Length(5, 320)
-  email: string;
-
-  @ApiPropertyPassword()
-  @IsStrongPassword({
-    minLength: 8,
-    minLowercase: 1,
-    minNumbers: 1,
-    minUppercase: 1,
-  })
-  @IsAscii()
-  @Length(8, 40)
-  password: string;
-}
-
-export class UserRegisterRequestDTO extends UserLoginRequestDTO {}
-
-export class UserChangePasswordRequestDTO
-  implements Omit<UserChangePasswordRequestDTO__Output, 'id'>
-{
-  @ApiPropertyPassword()
-  @IsStrongPassword({
-    minLength: 8,
-    minLowercase: 1,
-    minNumbers: 1,
-    minUppercase: 1,
-  })
-  @IsAscii()
-  @Length(8, 40)
-  current_password: string;
-
-  @ApiPropertyPassword({
-    example: 'Strong.Password2',
-    description: 'Can not be equal with current password',
-  })
-  @IsNotEqualWith('current_password', {
-    message: 'New password can not be equal with current password',
-  })
-  @IsStrongPassword({
-    minLength: 8,
-    minLowercase: 1,
-    minNumbers: 1,
-    minUppercase: 1,
-  })
-  @IsAscii()
-  @Length(8, 40)
-  password: string;
-}
-
-export class UserForgotPasswordRequestDTO
-  implements UserForgotPasswordRequestDTO__Output
-{
-  @ApiPropertyEmail()
-  @IsEmail()
-  @Length(5, 320)
-  email: string;
-}
-
-export class UserChangePasswordFromForgotPasswordRequestDTO
-  implements
-    Omit<UserChangePasswordFromForgotPasswordRequestDTO__Output, 'id' | 'code'>
-{
-  @ApiProperty({
-    minLength: 1,
-  })
-  @IsString()
-  @Length(1)
-  query: string;
-
-  @ApiPropertyPassword()
-  @IsStrongPassword({
-    minLength: 8,
-    minLowercase: 1,
-    minNumbers: 1,
-    minUppercase: 1,
-  })
-  @IsAscii()
-  @Length(8, 40)
-  password: string;
-}
-
 export class UserGetFilesRequestDTO extends SearchRequestQueryParams {
   @ApiProperty({ example: 'suc0aNkQ', required: false })
   @IsOptional()
@@ -137,22 +42,10 @@ export class UserGetFilesRequestDTO extends SearchRequestQueryParams {
   slug?: string;
 }
 
-export class UserGetUsersRequestDTO extends SearchRequestQueryParams {
-  @ApiProperty({ example: '_id', required: true })
-  @IsString()
-  @Expose()
-  sort_by: string;
-}
-
-export class UpdateTotalRequestDTO implements IncreaseSizeDTO__Output {
-  @ApiProperty({ example: bytes('1gb') + '', required: true })
-  @IsNumberString()
-  size: string;
-
-  @ApiProperty({ example: 1, required: true })
+export class UpdateTotalRequestDTO {
+  @ApiProperty({ example: bytes('1gb'), required: true })
   @IsNumber()
-  @Min(0)
-  user: number;
+  size: number;
 }
 
 export class UserUpdateUserFilesRequestDTO

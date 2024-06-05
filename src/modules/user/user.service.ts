@@ -1,43 +1,28 @@
-import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  OnModuleInit,
+  forwardRef,
+} from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
+import { FilePart__Output } from 'pb/file/FilePart';
 import { FileServiceHandlers } from 'pb/file/FileService';
 import { QueueServiceHandlers } from 'pb/queue/QueueService';
-import { UserServiceHandlers } from 'pb/user/UserService';
 import { firstValueFrom, from, toArray } from 'rxjs';
-import { HMAC_SECRET } from 'src/common/config';
-import {
-  FILE_MS_CLIENT,
-  QUEUE_MS_CLIENT,
-  USER_MS_CLIENT,
-} from 'src/common/config/constants';
-import { decodeVerifyCode } from 'src/common/helper';
+import { FILE_MS_CLIENT, QUEUE_MS_CLIENT } from 'src/common/config/constants';
 import { GrpcService } from 'src/common/type';
-import { SessionService } from '../session/session.service';
+import { AuthService, IAuthUser } from '../auth/auth.service';
+import { FileService } from '../file/file.service';
 import {
-  UpdateTotalRequestDTO,
-  UserChangePasswordFromForgotPasswordRequestDTO,
-  UserChangePasswordRequestDTO,
-  UserForgotPasswordRequestDTO,
   UserGetFilesRequestDTO,
-  UserGetUsersRequestDTO,
-  UserLoginRequestDTO,
-  UserRegisterRequestDTO,
   UserUpdateUserFilesRequestDTO,
 } from './user.request.dto';
-import {
-  UserForgotPasswordInvalidQueryExceptionDTO,
-  UserSessionResponseDTO,
-} from './user.response.dto';
-import { FilePart__Output } from 'pb/file/FilePart';
-import { FileService } from '../file/file.service';
 
 @Injectable()
 export class UserService implements OnModuleInit {
-  @Inject(forwardRef(() => SessionService))
-  private readonly sessionService: SessionService;
-
-  @Inject(forwardRef(() => USER_MS_CLIENT))
-  private readonly user_ms_client: ClientGrpc;
+  @Inject(forwardRef(() => AuthService))
+  private readonly authService: AuthService;
 
   @Inject(forwardRef(() => FILE_MS_CLIENT))
   private readonly file_ms_client: ClientGrpc;
@@ -48,107 +33,21 @@ export class UserService implements OnModuleInit {
   @Inject(forwardRef(() => FileService))
   private readonly fileService: FileService;
 
-  private userServiceMS: GrpcService<UserServiceHandlers>;
   private fileServiceMS: GrpcService<FileServiceHandlers>;
   private queueServiceMS: GrpcService<QueueServiceHandlers>;
 
   onModuleInit() {
-    this.userServiceMS = this.user_ms_client.getService('UserService');
     this.fileServiceMS = this.file_ms_client.getService('FileService');
     this.queueServiceMS = this.queue_ms_client.getService('QueueService');
   }
 
-  async register(
-    params: UserRegisterRequestDTO,
-  ): Promise<UserSessionResponseDTO> {
-    const { email, password } = params;
-
-    const user = await firstValueFrom(
-      this.userServiceMS.RegisterUser({ email, password }),
-    );
-
-    const { id, session } = await this.sessionService.set(user.id);
-
-    return { session: id + '|' + session };
-  }
-
-  async login(params: UserLoginRequestDTO): Promise<UserSessionResponseDTO> {
-    const { email, password } = params;
-
-    const user = await firstValueFrom(
-      this.userServiceMS.LoginUser({ email, password }),
-    );
-
-    const { id, session } = await this.sessionService.set(user.id);
-
-    return { session: id + '|' + session };
-  }
-
-  async change_password(
-    user_id: number,
-    params: UserChangePasswordRequestDTO,
-  ): Promise<UserSessionResponseDTO> {
-    const { current_password, password } = params;
-
-    const user = await firstValueFrom(
-      this.userServiceMS.ChangePassword({
-        current_password: current_password,
-        id: user_id,
-        password,
-      }),
-    );
-
-    await this.sessionService.delete_key(user.id);
-    const { id, session } = await this.sessionService.set(user.id);
-
-    return { session: id + '|' + session };
-  }
-
-  async forgot_password(
-    params: UserForgotPasswordRequestDTO,
-  ): Promise<boolean> {
-    const { email } = params;
-
-    const response = await firstValueFrom(
-      this.userServiceMS.ForgotPassword({ email }),
-    );
-
-    return response.success;
-  }
-
-  async change_password_from_forgot(
-    params: UserChangePasswordFromForgotPasswordRequestDTO,
-  ): Promise<UserSessionResponseDTO> {
-    const { password, query } = params;
-    const decoded = decodeVerifyCode(query, HMAC_SECRET);
-    if (!decoded) {
-      throw new UserForgotPasswordInvalidQueryExceptionDTO();
-    }
-
-    const { id, code } = decoded;
-
-    const user = await firstValueFrom(
-      this.userServiceMS.ChangePasswordFromForgot({ code, id, password }),
-    );
-
-    await this.sessionService.delete_key(user.id);
-    const { session, id: _id } = await this.sessionService.set(user.id);
-
-    return { session: _id + '|' + session };
-  }
-
-  async me(id: number) {
-    const user = await firstValueFrom(this.userServiceMS.me({ id }));
-    return user;
-  }
-
-  async get_files(user: number, params: UserGetFilesRequestDTO) {
+  async get_files(user: IAuthUser, params: UserGetFilesRequestDTO) {
     const { limit, skip } = params;
     delete params.limit;
     delete params.skip;
 
     const response = this.fileServiceMS.GetFiles({
-      where: { ...params, user },
+      where: { ...params, user: user.id },
       limit: { limit, skip },
       sort_by: '-created_at',
     });
@@ -158,19 +57,24 @@ export class UserService implements OnModuleInit {
     return data.map((x) => ({ ...x, user: undefined, parts: undefined }));
   }
 
-  async get_file(user: number, _id: string) {
-    const response = await firstValueFrom(
+  async get_file(user: IAuthUser, _id: string) {
+    const file = await firstValueFrom(
       this.fileServiceMS.GetFiles({
-        where: { user, _id },
+        where: { user: user.id, _id },
         limit: { limit: 1, skip: 0 },
       }),
+      { defaultValue: undefined },
     );
 
-    return { ...response, parts: undefined, user: undefined };
+    if (!file) {
+      throw new BadRequestException('File not found');
+    }
+
+    return { ...file, parts: undefined, user: undefined };
   }
 
   async update_file(
-    user: number,
+    user: IAuthUser,
     _id: string,
     params: UserUpdateUserFilesRequestDTO,
   ) {
@@ -180,55 +84,73 @@ export class UserService implements OnModuleInit {
         _id,
         file_name,
         headers,
-        user,
+        user: user.id,
       }),
     );
 
     return { ...response, parts: undefined, user: undefined };
   }
 
-  async delete_file(user: number, _id: string) {
+  async delete_file(user: IAuthUser, _id: string) {
     const file = await firstValueFrom(
-      this.fileServiceMS.DeleteFile({
-        _id,
-        user,
+      this.fileServiceMS.GetFiles({
+        where: { _id, user: user.id },
+        limit: { limit: 1, skip: 0 },
       }),
     );
 
-    for (const part of file.parts) {
-      await firstValueFrom(
-        this.queueServiceMS.DeleteFile(part as FilePart__Output),
-      );
+    for (const part of file.parts || []) {
+      try {
+        await firstValueFrom(
+          this.queueServiceMS.DeleteFile(part as FilePart__Output),
+        );
+      } catch (error) {
+        console.log('error error errorrrrr', error);
+        throw new BadRequestException('Can not deleted. Try again later');
+      }
     }
 
-    const response = await firstValueFrom(
-      this.userServiceMS.IncreaseUsedSize({
-        size: 0 - parseInt(file.size as string) + '',
-        user,
+    await firstValueFrom(
+      this.fileServiceMS.DeleteFile({
+        _id,
+        user: user.id,
       }),
     );
+
+    await this.authService.setMetadata(user.id, {
+      ...user.metadata,
+      used: user.metadata.used - Number(file.size),
+    });
 
     this.fileService.delete_file(file.name);
 
-    return response.value;
+    return file;
   }
 
-  async get_users(params: UserGetUsersRequestDTO) {
-    const response = this.userServiceMS.GetUsers(params);
-    return response.pipe(toArray());
+  async get_users() {
+    const users = await this.authService.getUsers();
+    return { users };
   }
 
-  async update_total(params: UpdateTotalRequestDTO) {
-    const { size, user } = params;
-    const response = await firstValueFrom(
-      this.userServiceMS.SetTotalDrive({ size, user }),
-    );
-
-    return response.value;
+  async get_user(userId: number) {
+    const user = await this.authService.getUser(userId);
+    return user;
   }
 
-  async count() {
-    const response = await firstValueFrom(this.userServiceMS.UsersCount({}));
-    return response.value;
+  async get_user_files(userId: number) {
+    const response = this.fileServiceMS.GetFiles({
+      where: { user: userId },
+      limit: { limit: 20, skip: 0 },
+      sort_by: '-created_at',
+    });
+
+    const array = await response.pipe(toArray());
+    const data = await firstValueFrom(from(array));
+    return data;
+  }
+
+  async update_total(userId: number, total: number) {
+    await this.authService.setMetadata(userId, { total }, true);
+    return true;
   }
 }

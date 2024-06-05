@@ -1,28 +1,22 @@
 import {
   Inject,
   Injectable,
-  InternalServerErrorException,
+  NotFoundException,
   forwardRef,
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import type { Response } from 'express';
 import { Types } from 'mongoose';
-import * as fs from 'node:fs';
 import * as stream from 'node:stream';
 import { File__Output } from 'pb/file/File';
 import { FileServiceHandlers } from 'pb/file/FileService';
-import { firstValueFrom, toArray } from 'rxjs';
+import { firstValueFrom, from, toArray } from 'rxjs';
 import { FILE_MS_CLIENT } from 'src/common/config/constants';
 import { GrpcService } from 'src/common/type';
-import { FileService } from 'src/modules/file/file.service';
 import { FilesGetFilesRequestDTO } from './files.request.dto';
-import { FilesGetFileLoadingExceptionDTO } from './files.response.dto';
 
 @Injectable()
 export class FilesService {
-  @Inject(forwardRef(() => FileService))
-  private readonly fileService: FileService;
-
   @Inject(forwardRef(() => FILE_MS_CLIENT))
   private readonly client: ClientGrpc;
 
@@ -39,81 +33,47 @@ export class FilesService {
       res.set(key, value);
     }
 
-    const local_stream = fs.createWriteStream('./upload/' + file.name);
     const pass = new stream.PassThrough();
     pass.pipe(res);
-    pass.pipe(local_stream);
 
-    response.subscribe({
+    const subscription = response.subscribe({
       next(data) {
         const { value } = data;
-        pass.write(value);
+        if (!res.closed) {
+          pass.write(value);
+        }
       },
       complete() {
         console.log('complete');
         pass.end();
       },
       error(err) {
-        console.log('err', err);
+        console.log('ERROR OCCURED WHILE GETTING FILE', file._id, err);
       },
+    });
+
+    res.on('close', () => {
+      subscription.unsubscribe();
+      pass.end();
     });
   }
 
-  async get_file(res: Response, slug: string) {
-    const response = this.fileServiceMS.GetBySlug({ slug });
-    const file = await firstValueFrom(response);
-
-    if (file.loading_from_cloud_now) {
-      const size = await this.fileService.get_file_length(file.name);
-      if (!size) {
-        throw new FilesGetFileLoadingExceptionDTO();
-      }
-
-      if (file.size === size + '') {
-        await firstValueFrom(
-          this.fileServiceMS.SetLoading({
-            _id: file._id,
-            loading_from_cloud_now: false,
-          }),
-        );
-      }
-
-      file.loading_from_cloud_now = false;
-    }
-
-    const file_stream = await this.fileService.get_file(
-      file.name,
-      0,
-      parseInt(file.size as string),
+  async get_file(res: Response, _id: string) {
+    const file = await firstValueFrom(
+      this.fileServiceMS.GetFiles({
+        limit: { limit: 1 },
+        where: { _id },
+      }),
+      { defaultValue: undefined },
     );
 
-    if (file_stream instanceof Error) {
-      if (file_stream.message.includes('no such file or directory')) {
-        return this.get_file_from_cloud(res, file as File__Output);
-      } else {
-        throw new InternalServerErrorException();
-      }
+    if (!file) {
+      throw new NotFoundException('File not found');
     }
 
-    res.set('Content-Disposition', `filename="${file.file_name}"`);
+    return this.get_file_from_cloud(res, file as File__Output);
 
-    for (const { key, value } of file.headers || []) {
-      res.set(key, value);
-    }
-
-    file_stream.on('end', () => {
-      if (!file.loading_from_cloud_now) {
-        return;
-      }
-
-      firstValueFrom(
-        this.fileServiceMS.SetLoading({
-          _id: file._id,
-          loading_from_cloud_now: false,
-        }),
-      );
-    });
-    file_stream.pipe(res);
+    // res.set('Content-Disposition', `filename="${file.file_name}"`);
   }
 
   async get_files(params: FilesGetFilesRequestDTO) {
@@ -182,5 +142,16 @@ export class FilesService {
     });
 
     return response.pipe(toArray());
+  }
+
+  async get_file_by_id(_id: string) {
+    const response = this.fileServiceMS.GetFiles({
+      where: { _id },
+      limit: { limit: 1, skip: 0 },
+    });
+
+    const array = await response.pipe(toArray());
+    const data = await firstValueFrom(from(array));
+    return data[0];
   }
 }

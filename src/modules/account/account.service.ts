@@ -6,10 +6,7 @@ import { firstValueFrom, toArray } from 'rxjs';
 import { FILE_MS_CLIENT } from 'src/common/config/constants';
 import { GrpcService, ISearch } from 'src/common/type';
 import { DEFAULT_SEARCH } from 'src/common/util';
-import {
-  AccountUpdateGoogleRequestDTO,
-  NewAccountRequestDTO,
-} from './account.request.dto';
+import { NewAccountRequestDTO } from './account.request.dto';
 
 @Injectable()
 export class AccountService implements OnModuleInit {
@@ -23,19 +20,7 @@ export class AccountService implements OnModuleInit {
   }
 
   async new_account(params: NewAccountRequestDTO) {
-    const account = await firstValueFrom(
-      this.accountServiceMS.NewAccount(params),
-    );
-
-    return account;
-  }
-
-  async login_url_google(params: AccountUpdateGoogleRequestDTO) {
-    const url = await firstValueFrom(
-      this.accountServiceMS.LoginUrlGoogle(params),
-    );
-
-    return url;
+    return firstValueFrom(this.accountServiceMS.NewAccount(params));
   }
 
   async get_accounts(params: ISearch = DEFAULT_SEARCH) {
@@ -65,16 +50,13 @@ export class AccountService implements OnModuleInit {
   }
 
   async update_label(params: UpdateLabelDTO__Output) {
-    const storage = await firstValueFrom(
-      this.accountServiceMS.UpdateLabel(params),
-    );
-    return storage.value;
+    return firstValueFrom(this.accountServiceMS.UpdateLabel(params));
   }
 
   async sync_size(value: string) {
     const result = await firstValueFrom(
       this.accountServiceMS.SyncSize({ value }),
     );
-    return result.value;
+    return result;
   }
 }

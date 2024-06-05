@@ -3,6 +3,7 @@ import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   IsDefined,
   IsNotIn,
+  IsNumber,
   IsNumberString,
   IsString,
   Length,
@@ -48,4 +49,9 @@ export class UploadGetFileQueryDTO {
   @IsDefined()
   @IsNumberString({ no_symbols: true })
   end: number;
+}
+
+export class UploadAvailableDTO {
+  @IsNumber()
+  size: number;
 }

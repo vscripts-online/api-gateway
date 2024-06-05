@@ -31,18 +31,25 @@ export class CallbackController implements OnModuleInit {
     @Query('state') state: string,
     @Query('code') code: string,
   ) {
-    const { _id } = JSON.parse(
+    const { client_id, client_secret, label } = JSON.parse(
       decodeURIComponent(state),
     ) as CallbackGoogleRequestDTO__Output;
 
-    const account = await firstValueFrom(
-      this.accountService.CallbackGoogle({ _id, code }),
-    );
+    try {
+      await firstValueFrom(
+        this.accountService.CallbackGoogle({
+          code,
+          client_id,
+          client_secret,
+          label,
+        }),
+      );
 
-    if (account) {
+      // ! TODO add redirect here
+
       return '<h1>Sucessfull! Tab will close automatically after 5 seconds.</h1><script>setTimeout(() => {window.close()}, 5000)</script>';
+    } catch (error) {
+      return 'An error occured check credentials such as client_id or client_secret and try again';
     }
-
-    return account;
   }
 }

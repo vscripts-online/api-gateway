@@ -54,3 +54,10 @@ export class AccountUpdateGoogleRequestDTO
 export class AccountDeleteAccountDTO extends ObjectIdDTO {}
 
 export class AccountGetAccountDTO extends ObjectIdDTO {}
+
+export class AccountUpdateLabelDTO {
+  @ApiProperty({ example: 'example@gmail.com', required: false })
+  @IsOptional()
+  @IsString()
+  label: string;
+}

@@ -28,7 +28,7 @@ export class GrpcExceptionsFilter implements ExceptionFilter {
     try {
       httpAdapter.reply(ctx.getResponse(), err.getResponse(), err.getStatus());
     } catch (error) {
-      console.log('INTERNAL ERROR', exception);
+      console.log('INTERNAL ERROR', exception, error);
       httpAdapter.reply(
         ctx.getResponse(),
         new InternalServerErrorException().getResponse(),

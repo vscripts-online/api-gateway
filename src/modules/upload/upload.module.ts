@@ -3,6 +3,7 @@ import { UploadService } from './upload.service';
 import { UploadController } from './upload.controller';
 import { MulterModule } from '@nestjs/platform-express';
 import { MulterConfigService } from './multer_config.service';
+import { AccountModule } from '../account/account.module';
 
 // ! Circular dependency
 @Module({
@@ -11,6 +12,7 @@ import { MulterConfigService } from './multer_config.service';
       imports: [UploadModule],
       useClass: MulterConfigService,
     }),
+    AccountModule,
   ],
   controllers: [UploadController],
   providers: [UploadService],

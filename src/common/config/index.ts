@@ -1,6 +1,6 @@
-import { getEnvOrThrow } from '../util';
-import { Transport, ClientOptions, GrpcOptions } from '@nestjs/microservices';
+import { ClientOptions, GrpcOptions, Transport } from '@nestjs/microservices';
 import * as path from 'node:path';
+import { getEnvOrThrow } from '../util';
 
 const ENV_STRINGS = {
   PORT: 'PORT',
@@ -11,8 +11,6 @@ const ENV_STRINGS = {
   AUTH_CLIENT_SECRET: 'AUTH_CLIENT_SECRET',
 
   QUEUE_MS_URI: 'QUEUE_MS_URI',
-  SESSION_MS_URI: 'SESSION_MS_URI',
-  USER_MS_URI: 'USER_MS_URI',
   FILE_MS_URI: 'FILE_MS_URI',
 };
 
@@ -23,13 +21,9 @@ export const AUTH_HOST_URI = getEnvOrThrow(ENV_STRINGS.AUTH_HOST_URI);
 export const AUTH_CLIENT_ID = getEnvOrThrow(ENV_STRINGS.AUTH_CLIENT_ID);
 export const AUTH_CLIENT_SECRET = getEnvOrThrow(ENV_STRINGS.AUTH_CLIENT_SECRET);
 
-export const SESSION_MS_URI = getEnvOrThrow(ENV_STRINGS.SESSION_MS_URI);
-export const USER_MS_URI = getEnvOrThrow(ENV_STRINGS.USER_MS_URI);
 export const FILE_MS_URI = getEnvOrThrow(ENV_STRINGS.FILE_MS_URI);
 export const QUEUE_MS_URI = getEnvOrThrow(ENV_STRINGS.QUEUE_MS_URI);
 
-const SESSION_PROTO_PATH = path.join(process.cwd(), 'proto/session.proto');
-const USER_PROTO_PATH = path.join(process.cwd(), 'proto/user.proto');
 const FILE_PROTO_PATH = path.join(process.cwd(), 'proto/file.proto');
 const ACCOUNT_PROTO_PATH = path.join(process.cwd(), 'proto/account.proto');
 const QUEUE_PROTO_PATH = path.join(process.cwd(), 'proto/queue.proto');
@@ -40,26 +34,6 @@ const loader: GrpcOptions['options']['loader'] = {
   longs: String,
 };
 
-export const SESSION_MS_GRPC_OPTIONS: ClientOptions = {
-  transport: Transport.GRPC,
-  options: {
-    url: SESSION_MS_URI,
-    package: 'session',
-    protoPath: SESSION_PROTO_PATH,
-    loader,
-  },
-};
-
-export const USER_MS_GRPC_OPTIONS: ClientOptions = {
-  transport: Transport.GRPC,
-  options: {
-    url: USER_MS_URI,
-    package: 'user',
-    protoPath: USER_PROTO_PATH,
-    loader,
-  },
-};
-
 export const FILE_MS_GRPC_OPTIONS: ClientOptions = {
   transport: Transport.GRPC,
   options: {
@@ -67,6 +41,10 @@ export const FILE_MS_GRPC_OPTIONS: ClientOptions = {
     package: ['file', 'account'],
     protoPath: [FILE_PROTO_PATH, ACCOUNT_PROTO_PATH],
     loader,
+    channelOptions: {
+      'grpc.initial_reconnect_backoff_ms': 1000,
+      'grpc.max_reconnect_backoff_ms': 2000,
+    },
   },
 };
 

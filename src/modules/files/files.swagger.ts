@@ -1,7 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import {
-  FilesGetFileLoadingExceptionDTO,
   FilesGetFileNotFoundExceptionDTO,
   FilesGetFilesResponseDTO,
 } from './files.response.dto';
@@ -30,9 +29,6 @@ export const FilesGetFileResponseDocumentation = () =>
           examples: {
             'If slug is not exists': {
               value: new FilesGetFileNotFoundExceptionDTO().getResponse(),
-            },
-            'If file is loading from cloud right now': {
-              value: new FilesGetFileLoadingExceptionDTO().getResponse(),
             },
           },
         },
