@@ -22,9 +22,11 @@ import { IAuthUser } from '../auth/auth.service';
 import {
   UpdateTotalRequestDTO,
   UserGetFilesRequestDTO,
+  UserGetUsersRequestDTO,
   UserUpdateUserFilesRequestDTO,
 } from './user.request.dto';
 import { UserService } from './user.service';
+import { FilesGetFilesRequestDTO } from '../files/files.request.dto';
 
 @ApiTags('user')
 @Controller('/user')
@@ -36,15 +38,17 @@ export class UserController {
   @ApiBearerAuth()
   @Get('/files')
   async get_files(@Query() _params: any, @AuthUser() user: IAuthUser) {
-    const params = plainToInstance(UserGetFilesRequestDTO, _params, {
-      excludeExtraneousValues: true,
-      exposeUnsetFields: false,
-    });
-    await validateOrReject(params).catch((e) => {
-      throw new BadRequestException(Array.isArray(e) ? e[0].constraints : e);
-    });
+    try {
+      const params = plainToInstance(UserGetFilesRequestDTO, _params, {
+        excludeExtraneousValues: true,
+        exposeUnsetFields: false,
+      });
+      await validateOrReject(params);
 
-    return this.userService.get_files(user, params);
+      return this.userService.get_files(user, params);
+    } catch (e) {
+      throw new BadRequestException(Array.isArray(e) ? e[0].constraints : e);
+    }
   }
 
   @UseGuards(AuthGuard)
@@ -54,7 +58,6 @@ export class UserController {
     return this.userService.get_file(user, file_id);
   }
 
-  // ! TODO test et
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @Put('/files/:id')
@@ -79,8 +82,8 @@ export class UserController {
   @UseGuards(AuthGuard, AdminGuard)
   @ApiBearerAuth()
   @Get('/users')
-  async get_users() {
-    return this.userService.get_users();
+  async get_users(@Query() params: UserGetUsersRequestDTO) {
+    return this.userService.get_users(params);
   }
 
   @UseGuards(AuthGuard, AdminGuard)
@@ -93,8 +96,17 @@ export class UserController {
   @UseGuards(AuthGuard, AdminGuard)
   @ApiBearerAuth()
   @Get('/users/:userId/files')
-  async get_user_files(@Param('userId', ParseIntPipe) userId: number) {
-    return this.userService.get_user_files(userId);
+  async get_user_files(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query() _params: any,
+  ) {
+    const params = plainToInstance(FilesGetFilesRequestDTO, _params, {
+      excludeExtraneousValues: true,
+      exposeUnsetFields: false,
+    });
+    await validateOrReject(params);
+
+    return this.userService.get_user_files(userId, params);
   }
 
   @UseGuards(AuthGuard, AdminGuard)

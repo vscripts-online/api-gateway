@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform, TransformFnParams } from 'class-transformer';
 import {
   IsEnum,
   IsMongoId,
@@ -27,6 +28,7 @@ export class NewAccountRequestDTO implements NewAccountRequestDTO__Output {
   })
   @IsString()
   @Length(10)
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   client_id: string;
 
   @ApiProperty({
@@ -35,6 +37,7 @@ export class NewAccountRequestDTO implements NewAccountRequestDTO__Output {
   })
   @IsString()
   @Length(10)
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   client_secret: string;
 }
 
@@ -44,6 +47,7 @@ export class ObjectIdDTO {
     minLength: 10,
   })
   @IsMongoId()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   _id: string;
 }
 

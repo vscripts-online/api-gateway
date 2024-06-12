@@ -2,7 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
-  InternalServerErrorException,
+  NotFoundException,
   forwardRef,
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
@@ -89,21 +89,26 @@ export class UploadService {
   async get_file(res: Response, name: string, start: number, end: number) {
     const file_stream = await this.fileService.get_file(name, start, end);
     if (file_stream instanceof Error) {
-      throw new InternalServerErrorException();
+      throw new NotFoundException();
     }
 
     file_stream.pipe(res);
   }
 
   async del_file(_id: string) {
-    console.log('DELETE FILE', _id);
-
-    const file = await firstValueFrom(
+    console.log('del_file from consumer', _id);
+    const { files } = await firstValueFrom(
       this.fileServiceMS.GetFiles({
         where: { _id },
         limit: { limit: 1, skip: 0 },
       }),
     );
+
+    const file = files?.[0];
+
+    if (!file) {
+      throw new BadRequestException('File not found');
+    }
 
     const parts_size =
       file.parts.map((x) => +x.size).reduce((old, val) => old + val, 0) +

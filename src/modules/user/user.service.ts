@@ -2,20 +2,22 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  NotFoundException,
   OnModuleInit,
   forwardRef,
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
-import { FilePart__Output } from 'pb/file/FilePart';
 import { FileServiceHandlers } from 'pb/file/FileService';
 import { QueueServiceHandlers } from 'pb/queue/QueueService';
-import { firstValueFrom, from, toArray } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { FILE_MS_CLIENT, QUEUE_MS_CLIENT } from 'src/common/config/constants';
 import { GrpcService } from 'src/common/type';
 import { AuthService, IAuthUser } from '../auth/auth.service';
 import { FileService } from '../file/file.service';
+import { FilesGetFilesRequestDTO } from '../files/files.request.dto';
 import {
   UserGetFilesRequestDTO,
+  UserGetUsersRequestDTO,
   UserUpdateUserFilesRequestDTO,
 } from './user.request.dto';
 
@@ -46,25 +48,35 @@ export class UserService implements OnModuleInit {
     delete params.limit;
     delete params.skip;
 
+    const safeLimit = !limit ? 20 : limit > 100 ? 100 : limit;
+
     const response = this.fileServiceMS.GetFiles({
       where: { ...params, user: user.id },
-      limit: { limit, skip },
-      sort_by: '-created_at',
+      limit: { limit: safeLimit, skip },
+      sort_by: params.sortBy,
     });
 
-    const array = await response.pipe(toArray());
-    const data = await firstValueFrom(from(array));
-    return data.map((x) => ({ ...x, user: undefined, parts: undefined }));
+    const data = await firstValueFrom(response);
+
+    data.files =
+      data.files?.map((x) => ({
+        ...x,
+        user: undefined,
+        parts: undefined,
+      })) || [];
+
+    return data;
   }
 
   async get_file(user: IAuthUser, _id: string) {
-    const file = await firstValueFrom(
+    const { files } = await firstValueFrom(
       this.fileServiceMS.GetFiles({
         where: { user: user.id, _id },
         limit: { limit: 1, skip: 0 },
       }),
-      { defaultValue: undefined },
     );
+
+    const file = files?.[0];
 
     if (!file) {
       throw new BadRequestException('File not found');
@@ -92,30 +104,20 @@ export class UserService implements OnModuleInit {
   }
 
   async delete_file(user: IAuthUser, _id: string) {
-    const file = await firstValueFrom(
+    const { files } = await firstValueFrom(
       this.fileServiceMS.GetFiles({
         where: { _id, user: user.id },
         limit: { limit: 1, skip: 0 },
       }),
     );
 
-    for (const part of file.parts || []) {
-      try {
-        await firstValueFrom(
-          this.queueServiceMS.DeleteFile(part as FilePart__Output),
-        );
-      } catch (error) {
-        console.log('error error errorrrrr', error);
-        throw new BadRequestException('Can not deleted. Try again later');
-      }
+    const file = files?.[0];
+
+    if (!file) {
+      throw new NotFoundException('File not found');
     }
 
-    await firstValueFrom(
-      this.fileServiceMS.DeleteFile({
-        _id,
-        user: user.id,
-      }),
-    );
+    await firstValueFrom(this.queueServiceMS.DeleteFile({ value: file._id }));
 
     await this.authService.setMetadata(user.id, {
       ...user.metadata,
@@ -127,9 +129,9 @@ export class UserService implements OnModuleInit {
     return file;
   }
 
-  async get_users() {
-    const users = await this.authService.getUsers();
-    return { users };
+  async get_users(params: UserGetUsersRequestDTO) {
+    const response = await this.authService.getUsers(params);
+    return response;
   }
 
   async get_user(userId: number) {
@@ -137,15 +139,21 @@ export class UserService implements OnModuleInit {
     return user;
   }
 
-  async get_user_files(userId: number) {
+  async get_user_files(userId: number, params: FilesGetFilesRequestDTO) {
+    const { limit, skip } = params;
+    delete params.limit;
+    delete params.skip;
+
+    const safeLimit = !limit ? 20 : limit > 100 ? 100 : limit;
+
     const response = this.fileServiceMS.GetFiles({
-      where: { user: userId },
-      limit: { limit: 20, skip: 0 },
-      sort_by: '-created_at',
+      where: { ...params, user: userId },
+      limit: { limit: safeLimit, skip },
+      sort_by: params.sortBy,
     });
 
-    const array = await response.pipe(toArray());
-    const data = await firstValueFrom(from(array));
+    const data = await firstValueFrom(response);
+
     return data;
   }
 

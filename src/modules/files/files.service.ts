@@ -6,24 +6,37 @@ import {
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import type { Response } from 'express';
-import { Types } from 'mongoose';
 import * as stream from 'node:stream';
 import { File__Output } from 'pb/file/File';
 import { FileServiceHandlers } from 'pb/file/FileService';
-import { firstValueFrom, from, toArray } from 'rxjs';
-import { FILE_MS_CLIENT } from 'src/common/config/constants';
+import { QueueServiceHandlers } from 'pb/queue/QueueService';
+import { firstValueFrom } from 'rxjs';
+import { FILE_MS_CLIENT, QUEUE_MS_CLIENT } from 'src/common/config/constants';
 import { GrpcService } from 'src/common/type';
-import { FilesGetFilesRequestDTO } from './files.request.dto';
+import {
+  FileUpdateFileRequestDTO,
+  FilesGetFilesRequestDTO,
+} from './files.request.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class FilesService {
   @Inject(forwardRef(() => FILE_MS_CLIENT))
-  private readonly client: ClientGrpc;
+  private readonly fileMSClient: ClientGrpc;
+
+  @Inject(forwardRef(() => QUEUE_MS_CLIENT))
+  private readonly queueMSClient: ClientGrpc;
+
+  @Inject(forwardRef(() => AuthService))
+  private readonly authService: AuthService;
 
   private fileServiceMS: GrpcService<FileServiceHandlers>;
+  private queueServiceMS: GrpcService<QueueServiceHandlers>;
 
   onModuleInit() {
-    this.fileServiceMS = this.client.getService('FileService');
+    this.fileServiceMS = this.fileMSClient.getService('FileService');
+    this.fileServiceMS = this.fileMSClient.getService('FileService');
+    this.queueServiceMS = this.queueMSClient.getService('QueueService');
   }
 
   async get_file_from_cloud(res: Response, file: File__Output) {
@@ -59,13 +72,15 @@ export class FilesService {
   }
 
   async get_file(res: Response, _id: string) {
-    const file = await firstValueFrom(
+    const { files } = await firstValueFrom(
       this.fileServiceMS.GetFiles({
         limit: { limit: 1 },
         where: { _id },
       }),
       { defaultValue: undefined },
     );
+
+    const file = files[0];
 
     if (!file) {
       throw new NotFoundException('File not found');
@@ -81,77 +96,75 @@ export class FilesService {
     delete params.limit;
     delete params.skip;
 
-    if (typeof params.size_gte === 'number') {
-      params['size'] = { $gte: params.size_gte };
-      delete params.size_gte;
-    }
-
-    if (typeof params.size_lte === 'number') {
-      params['size'] = { ...params['size'], $lte: params.size_lte };
-      delete params.size_lte;
-    }
-
-    if (params.headers_key) {
-      params['headers.key'] = params.headers_key;
-      delete params.headers_key;
-    }
-
-    if (params.headers_value) {
-      params['headers.value'] = params.headers_value;
-      delete params.headers_value;
-    }
-
-    if (params.owner) {
-      params['parts.owner'] = new Types.ObjectId(params.owner);
-      delete params.owner;
-    }
-
-    if (params.created_at_gte) {
-      params['created_at'] = { gte: params.created_at_gte };
-      delete params.created_at_gte;
-    }
-
-    if (params.created_at_lte) {
-      params['created_at'] = {
-        ...params['created_at'],
-        lte: params.created_at_lte,
-      };
-      delete params.created_at_lte;
-    }
-
-    if (params.updated_at_gte) {
-      params['updated_at'] = { gte: params.updated_at_gte };
-      delete params.updated_at_gte;
-    }
-
-    if (params.updated_at_lte) {
-      params['updated_at'] = {
-        ...params['updated_at'],
-        lte: params.updated_at_lte,
-      };
-      delete params.updated_at_lte;
-    }
-
-    const sort_by = params.sort_by;
-    delete params.sort_by;
+    const safeLimit = !limit ? 20 : limit > 100 ? 100 : limit;
 
     const response = this.fileServiceMS.GetFiles({
-      where: { ...params },
-      limit: { limit, skip },
-      sort_by,
+      where: params,
+      limit: { limit: safeLimit, skip },
+      sort_by: params.sortBy,
     });
 
-    return response.pipe(toArray());
+    const data = await firstValueFrom(response);
+
+    return data;
   }
 
   async get_file_by_id(_id: string) {
-    const response = this.fileServiceMS.GetFiles({
-      where: { _id },
-      limit: { limit: 1, skip: 0 },
-    });
+    const { files } = await firstValueFrom(
+      this.fileServiceMS.GetFiles({
+        where: { _id },
+        limit: { limit: 1, skip: 0 },
+      }),
+    );
 
-    const array = await response.pipe(toArray());
-    const data = await firstValueFrom(from(array));
-    return data[0];
+    const file = files?.[0];
+
+    if (!file) {
+      throw new NotFoundException('File not found');
+    }
+
+    return file;
+  }
+
+  async update_file_by_id(_id: string, params: FileUpdateFileRequestDTO) {
+    const { file_name, headers } = params;
+    const response = await firstValueFrom(
+      this.fileServiceMS.UpdateFile({
+        _id,
+        file_name,
+        headers,
+        user: params.user,
+      }),
+    );
+
+    return { ...response, parts: undefined, user: undefined };
+  }
+
+  async delete_file_by_id(_id: string) {
+    const { files } = await firstValueFrom(
+      this.fileServiceMS.GetFiles({
+        where: { _id },
+        limit: { limit: 1, skip: 0 },
+      }),
+    );
+
+    const file = files?.[0];
+
+    if (!file) {
+      throw new NotFoundException('File not found');
+    }
+
+    await firstValueFrom(this.queueServiceMS.DeleteFile({ value: file._id }));
+
+    const user = await this.authService.getUser(file.user, 1, 0);
+
+    if (user) {
+      await this.authService.setMetadata(user.user.id, {
+        ...user.metadata,
+        used: user.metadata.used - Number(file.size),
+      });
+    }
+
+    return file;
   }
 }
